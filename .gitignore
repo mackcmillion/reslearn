@@ -1,3 +1,4 @@
 .idea/
 MNIST_data/
 summaries/
+*.pyc
