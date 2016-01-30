@@ -2,7 +2,7 @@ from tensorflow.examples.tutorials.mnist import input_data
 import tensorflow as tf
 
 from layers import InputLayer, ConvLayerWithReLU, PoolingLayer, FullyConnectedLayerWithReLU, \
-    FullyConnectedLayerWithSoftmax
+    FullyConnectedLayerWithSoftmax, NetworkBuilder
 
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 sess = tf.Session()
@@ -30,15 +30,16 @@ def max_pool_2x2(x):
 
 x_image = tf.reshape(x, [-1, 28, 28, 1])
 
-input_layer = InputLayer("input", x_image)
-conv1 = ConvLayerWithReLU("conv1", 1, 32, input_layer, 5, 1)
-pool1 = PoolingLayer("pool1", 32, conv1, tf.nn.max_pool, 2, 2)
-conv2 = ConvLayerWithReLU("conv2", 32, 64, pool1, 5, 1)
-pool2 = PoolingLayer("pool2", 64, conv2, tf.nn.max_pool, 2, 2)
-fc1 = FullyConnectedLayerWithReLU("fc1", 7 * 7 * 64, 1024, pool2)
-output_layer = FullyConnectedLayerWithSoftmax("softmax", 1024, 10, fc1)
-
-y = output_layer.eval()
+y = (
+    NetworkBuilder()
+    .add_layer(InputLayer("input", x_image))
+    .add_layer(ConvLayerWithReLU("conv1", 1, 32, 5, 1))
+    .add_layer(PoolingLayer("pool1", 32, tf.nn.max_pool, 2, 2))
+    .add_layer(ConvLayerWithReLU("conv2", 32, 64, 5, 1))
+    .add_layer(PoolingLayer("pool2", 64, tf.nn.max_pool, 2, 2))
+    .add_layer(FullyConnectedLayerWithReLU("fc1", 7 * 7 * 64, 1024))
+    .add_layer(FullyConnectedLayerWithSoftmax("softmax", 1024, 10))
+).build()
 
 cross_entropy = - tf.reduce_sum(y_ * tf.log(y))
 train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
