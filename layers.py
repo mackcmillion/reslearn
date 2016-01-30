@@ -4,7 +4,8 @@ from abc import ABCMeta, abstractmethod
 
 class NetworkBuilder(object):
 
-    _current_layer = None
+    def __init__(self, layer_before=None):
+        self._current_layer = layer_before
 
     def add_layer(self, layer):
         layer.layer_before = self._current_layer
@@ -43,6 +44,20 @@ class Layer(object):
         self._layer_before = layer
 
 
+class BuildingBlock(Layer):
+
+    def __init__(self, name, in_channels, out_channels, layers):
+        super(BuildingBlock, self).__init__(name, in_channels, out_channels)
+        self._layers = layers
+
+    def eval(self):
+        with tf.name_scope(self._name):
+            builder = NetworkBuilder(self._layer_before)
+            for layer in self._layers:
+                builder.add_layer(layer)
+            return builder.build()
+
+
 class InputLayer(Layer):
 
     def __init__(self, name, x):
@@ -62,15 +77,18 @@ class ConvLayer(Layer):
 
     def eval(self):
         x = self.layer_before.eval()
-        w = _weight_variable([self._filter_size, self._filter_size, self._in_channels, self._out_channels])
-        return tf.nn.conv2d(x, w, strides=[1, self._stride, self._stride, 1], padding='SAME')
+        w = _weight_variable(
+                [self._filter_size, self._filter_size, self._in_channels, self._out_channels],
+                name=self._name + '_weights'
+        )
+        return tf.nn.conv2d(x, w, strides=[1, self._stride, self._stride, 1], padding='SAME', name=self._name)
 
 
 class ConvLayerWithReLU(ConvLayer):
 
     def eval(self):
-        b = _bias_variable([self._out_channels])
-        return tf.nn.relu(super(ConvLayerWithReLU, self).eval() + b)
+        b = _bias_variable([self._out_channels], name=self._name + 'ReLU_bias')
+        return tf.nn.relu(super(ConvLayerWithReLU, self).eval() + b, name=self._name + 'ReLU')
 
 
 class PoolingLayer(Layer):
@@ -87,7 +105,8 @@ class PoolingLayer(Layer):
                 x,
                 ksize=[1, self._filter_size, self._filter_size, 1],
                 strides=[1, self._stride, self._stride, 1],
-                padding='SAME'
+                padding='SAME',
+                name=self._name
         )
 
 
@@ -100,29 +119,29 @@ class FullyConnectedLayer(Layer):
         x = self.layer_before.eval()
         if self._in_channels != self.layer_before.out_channels:
             x = tf.reshape(x, [-1, self._in_channels])
-        w = _weight_variable([self._in_channels, self.out_channels])
-        return tf.matmul(x, w)
+        w = _weight_variable([self._in_channels, self.out_channels], name=self._name + '_weights')
+        return tf.matmul(x, w, name=self._name)
 
 
 class FullyConnectedLayerWithReLU(FullyConnectedLayer):
 
     def eval(self):
-        b = _bias_variable([self._out_channels])
-        return tf.nn.relu(super(FullyConnectedLayerWithReLU, self).eval() + b)
+        b = _bias_variable([self._out_channels], name=self._name + 'ReLU_bias')
+        return tf.nn.relu(super(FullyConnectedLayerWithReLU, self).eval() + b, name=self._name + 'ReLU')
 
 
 class FullyConnectedLayerWithSoftmax(FullyConnectedLayer):
 
     def eval(self):
-        b = _bias_variable([self._out_channels])
-        return tf.nn.softmax(super(FullyConnectedLayerWithSoftmax, self).eval() + b)
+        b = _bias_variable([self._out_channels], name=self._name + 'Softmax_bias')
+        return tf.nn.softmax(super(FullyConnectedLayerWithSoftmax, self).eval() + b, name=self._name + 'Softmax')
 
 
-def _weight_variable(shape):
+def _weight_variable(shape, name):
     initial = tf.truncated_normal(shape, stddev=0.1)
-    return tf.Variable(initial)
+    return tf.Variable(initial, name=name)
 
 
-def _bias_variable(shape):
+def _bias_variable(shape, name):
     initial = tf.constant(0.1, shape=shape)
-    return tf.Variable(initial)
+    return tf.Variable(initial, name=name)
