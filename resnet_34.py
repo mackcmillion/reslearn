@@ -1,7 +1,8 @@
 import tensorflow as tf
+from architecture.building_blocks import ResidualBuildingBlock
 
-from building_blocks import ResidualBuildingBlock
-from layers import NetworkBuilder, ConvLayer, PoolingLayer, ConvLayerWithReLU, FullyConnectedLayerWithSoftmax, \
+from architecture.layers import NetworkBuilder, ConvLayer, PoolingLayer, ConvLayerWithReLU, \
+    FullyConnectedLayerWithSoftmax, \
     InputLayer
 
 

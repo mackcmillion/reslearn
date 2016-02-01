@@ -1,10 +1,10 @@
-from tensorflow.examples.tutorials.mnist import input_data
 import tensorflow as tf
+from building_blocks import BuildingBlock
+from tensorflow.examples.tutorials.mnist import input_data
 
 import hyperparams
-from layers import InputLayer, ConvLayerWithReLU, PoolingLayer, FullyConnectedLayerWithReLU, \
+from architecture.layers import InputLayer, ConvLayerWithReLU, PoolingLayer, FullyConnectedLayerWithReLU, \
     FullyConnectedLayerWithSoftmax, NetworkBuilder
-from building_blocks import BuildingBlock
 
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 sess = tf.Session()
