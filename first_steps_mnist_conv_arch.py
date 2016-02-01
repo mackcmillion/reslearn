@@ -1,10 +1,10 @@
-import datetime
 from tensorflow.examples.tutorials.mnist import input_data
 import tensorflow as tf
 
 import hyperparams
 from layers import InputLayer, ConvLayerWithReLU, PoolingLayer, FullyConnectedLayerWithReLU, \
-    FullyConnectedLayerWithSoftmax, NetworkBuilder, BuildingBlock
+    FullyConnectedLayerWithSoftmax, NetworkBuilder
+from building_blocks import BuildingBlock
 
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 sess = tf.Session()

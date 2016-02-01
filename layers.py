@@ -1,5 +1,6 @@
-import tensorflow as tf
 from abc import ABCMeta, abstractmethod
+
+import tensorflow as tf
 
 
 class NetworkBuilder(object):
@@ -26,10 +27,19 @@ class Layer(object):
         self._name = name
         self._in_channels = in_channels
         self._out_channels = out_channels
+        self._x = None
 
     @abstractmethod
-    def eval(self):
+    def _eval(self):
         pass
+
+    def eval(self):
+        if self._x:
+            return self._x
+        print 'eval() in ' + self._name
+        self._x = self._eval()
+        print self._x.get_shape()
+        return self._x
 
     @property
     def out_channels(self):
@@ -44,27 +54,13 @@ class Layer(object):
         self._layer_before = layer
 
 
-class BuildingBlock(Layer):
-
-    def __init__(self, name, in_channels, out_channels, layers):
-        super(BuildingBlock, self).__init__(name, in_channels, out_channels)
-        self._layers = layers
-
-    def eval(self):
-        with tf.name_scope(self._name):
-            builder = NetworkBuilder(self._layer_before)
-            for layer in self._layers:
-                builder.add_layer(layer)
-            return builder.build()
-
-
 class InputLayer(Layer):
 
     def __init__(self, name, x):
         super(InputLayer, self).__init__(name, None, 1)
         self._x = x
 
-    def eval(self):
+    def _eval(self):
         return self._x
 
 
@@ -75,9 +71,9 @@ class ConvLayer(Layer):
         self._filter_size = filter_size
         self._stride = stride
 
-    def eval(self):
+    def _eval(self):
         x = self.layer_before.eval()
-        w = _weight_variable(
+        w = weight_variable(
                 [self._filter_size, self._filter_size, self._in_channels, self._out_channels],
                 name=self._name + '_weights'
         )
@@ -86,9 +82,9 @@ class ConvLayer(Layer):
 
 class ConvLayerWithReLU(ConvLayer):
 
-    def eval(self):
-        b = _bias_variable([self._out_channels], name=self._name + 'ReLU_bias')
-        return tf.nn.relu(super(ConvLayerWithReLU, self).eval() + b, name=self._name + 'ReLU')
+    def _eval(self):
+        b = bias_variable([self._out_channels], name=self._name + 'ReLU_bias')
+        return tf.nn.relu(super(ConvLayerWithReLU, self)._eval() + b, name=self._name + 'ReLU')
 
 
 class PoolingLayer(Layer):
@@ -99,7 +95,7 @@ class PoolingLayer(Layer):
         self._filter_size = filter_size
         self._stride = stride
 
-    def eval(self):
+    def _eval(self):
         x = self.layer_before.eval()
         return self._pooling_func(
                 x,
@@ -115,33 +111,33 @@ class FullyConnectedLayer(Layer):
     def __init__(self, name, in_channels, out_channels):
         super(FullyConnectedLayer, self).__init__(name, in_channels, out_channels)
 
-    def eval(self):
+    def _eval(self):
         x = self.layer_before.eval()
         if self._in_channels != self.layer_before.out_channels:
             x = tf.reshape(x, [-1, self._in_channels])
-        w = _weight_variable([self._in_channels, self.out_channels], name=self._name + '_weights')
+        w = weight_variable([self._in_channels, self.out_channels], name=self._name + '_weights')
         return tf.matmul(x, w, name=self._name)
 
 
 class FullyConnectedLayerWithReLU(FullyConnectedLayer):
 
-    def eval(self):
-        b = _bias_variable([self._out_channels], name=self._name + 'ReLU_bias')
-        return tf.nn.relu(super(FullyConnectedLayerWithReLU, self).eval() + b, name=self._name + 'ReLU')
+    def _eval(self):
+        b = bias_variable([self._out_channels], name=self._name + 'ReLU_bias')
+        return tf.nn.relu(super(FullyConnectedLayerWithReLU, self)._eval() + b, name=self._name + 'ReLU')
 
 
 class FullyConnectedLayerWithSoftmax(FullyConnectedLayer):
 
-    def eval(self):
-        b = _bias_variable([self._out_channels], name=self._name + 'Softmax_bias')
-        return tf.nn.softmax(super(FullyConnectedLayerWithSoftmax, self).eval() + b, name=self._name + 'Softmax')
+    def _eval(self):
+        b = bias_variable([self._out_channels], name=self._name + 'Softmax_bias')
+        return tf.nn.softmax(super(FullyConnectedLayerWithSoftmax, self)._eval() + b, name=self._name + 'Softmax')
 
 
-def _weight_variable(shape, name):
+def weight_variable(shape, name):
     initial = tf.truncated_normal(shape, stddev=0.1)
     return tf.Variable(initial, name=name)
 
 
-def _bias_variable(shape, name):
+def bias_variable(shape, name):
     initial = tf.constant(0.1, shape=shape)
     return tf.Variable(initial, name=name)
