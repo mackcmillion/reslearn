@@ -36,9 +36,9 @@ class Layer(object):
     def eval(self):
         if self._x:
             return self._x
-        print 'eval() in ' + self._name
+        # print 'eval() in ' + self._name
         self._x = self._eval()
-        print self._x.get_shape()
+        assert self._x.get_shape()[-1].value == self._out_channels
         return self._x
 
     @property
