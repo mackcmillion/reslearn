@@ -1,7 +1,8 @@
 from abc import ABCMeta, abstractmethod
-from math import sqrt
 
 import tensorflow as tf
+
+from util import weight_variable, bias_variable, batch_normalize
 
 
 class NetworkBuilder(object):
@@ -80,8 +81,10 @@ class ConvLayer(Layer):
 
 class ConvLayerWithReLU(ConvLayer):
     def _eval(self):
-        b = bias_variable([self._out_channels], name=self._name + 'ReLU_bias', initial=0)
-        return tf.nn.relu(super(ConvLayerWithReLU, self)._eval() + b, name=self._name + 'ReLU')
+        b = bias_variable([self._out_channels], name=self._name + 'ReLU_bias', initial=0.0)
+        return tf.nn.relu(
+                batch_normalize(super(ConvLayerWithReLU, self)._eval(), self._out_channels, self._name) + b,
+                name=self._name + 'ReLU')
 
 
 class PoolingLayer(Layer):
@@ -117,30 +120,11 @@ class FullyConnectedLayer(Layer):
 
 class FullyConnectedLayerWithReLU(FullyConnectedLayer):
     def _eval(self):
-        b = bias_variable([self._out_channels], name=self._name + 'ReLU_bias', initial=0)
+        b = bias_variable([self._out_channels], name=self._name + 'ReLU_bias', initial=0.0)
         return tf.nn.relu(super(FullyConnectedLayerWithReLU, self)._eval() + b, name=self._name + 'ReLU')
 
 
 class FullyConnectedLayerWithSoftmax(FullyConnectedLayer):
     def _eval(self):
-        b = bias_variable([self._out_channels], name=self._name + 'Softmax_bias', initial=0)
+        b = bias_variable([self._out_channels], name=self._name + 'Softmax_bias', initial=0.0)
         return tf.nn.softmax(super(FullyConnectedLayerWithSoftmax, self)._eval() + b, name=self._name + 'Softmax')
-
-
-def unoptimized_weight_variable(shape, name, stddev=0.1):
-    initial = tf.truncated_normal(shape, stddev=stddev)
-    return tf.Variable(initial, name=name)
-
-
-# optimized weight variable initialization according to
-# K. He - Delving Deep into Rectifiers: Surpassing Human Performance in ImageNet Classification
-# where n_hat = k**2 * d
-# with k the image size (k x k) and d the number of channels
-def weight_variable(shape, name, n_hat):
-    initial = tf.truncated_normal(shape, stddev=sqrt(n_hat))
-    return tf.Variable(initial, name=name)
-
-
-def bias_variable(shape, name, initial=0.1):
-    initial = tf.constant(initial, shape=shape)
-    return tf.Variable(initial, name=name)

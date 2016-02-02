@@ -1,10 +1,10 @@
 import tensorflow as tf
 
-from layers import Layer, NetworkBuilder, bias_variable, unoptimized_weight_variable
+from layers import Layer, NetworkBuilder
+from util import bias_variable, unoptimized_weight_variable, batch_normalize
 
 
 class BuildingBlock(Layer):
-
     def __init__(self, name, in_channels, out_channels, layers):
         super(BuildingBlock, self).__init__(name, in_channels, out_channels)
         self._layers = layers
@@ -21,7 +21,6 @@ class BuildingBlock(Layer):
 
 
 class ResidualBuildingBlock(BuildingBlock):
-
     def __init__(self, name, in_channels, out_channels, layers, adjust_dimensions='PROJECTION'):
         super(ResidualBuildingBlock, self).__init__(name, in_channels, out_channels, layers)
         assert adjust_dimensions == 'IDENTITY' or adjust_dimensions == 'PROJECTION'
@@ -36,8 +35,12 @@ class ResidualBuildingBlock(BuildingBlock):
             f = self._eval_aux()
             if x.get_shape() != f.get_shape():
                 x = self._adjust_dimensions(x, x.get_shape(), f.get_shape(), self._name)
-            b = bias_variable([self._out_channels], name=self._name + '_bias', initial=0)
-            return tf.nn.relu(f + x + b, name=self._name + 'ResidualReLU')
+            b = bias_variable([self._out_channels], name=self._name + '_bias', initial=0.0)
+            # TODO not sure if to apply batch normalization to the residual or only to f
+            residual = f + x
+            return tf.nn.relu(
+                    batch_normalize(residual, self._out_channels, self._name) + b,
+                    name=self._name + 'ResidualReLU')
 
 
 def _identity_mapping(x, x_shape, f_shape, name):
