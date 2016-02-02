@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from layers import Layer, NetworkBuilder, bias_variable, weight_variable
+from layers import Layer, NetworkBuilder, bias_variable, unoptimized_weight_variable
 
 
 class BuildingBlock(Layer):
@@ -36,7 +36,7 @@ class ResidualBuildingBlock(BuildingBlock):
             f = self._eval_aux()
             if x.get_shape() != f.get_shape():
                 x = self._adjust_dimensions(x, x.get_shape(), f.get_shape(), self._name)
-            b = bias_variable([self._out_channels], name=self._name + '_bias')
+            b = bias_variable([self._out_channels], name=self._name + '_bias', initial=0)
             return tf.nn.relu(f + x + b, name=self._name + 'ResidualReLU')
 
 
@@ -46,7 +46,6 @@ def _identity_mapping(x, x_shape, f_shape, name):
 
 def _projection_mapping(x, x_shape, f_shape, name):
     # FIXME using 1x1 convolution with stride 2 makes TensorFlow throw exception
-    w = weight_variable([2, 2, x_shape[3].value, f_shape[3].value], name=name + '_residualWeights')
+    w = unoptimized_weight_variable([2, 2, x_shape[3].value, f_shape[3].value], name=name + '_residualWeights')
     stride = int(f_shape[3].value / x_shape[3].value)
     return tf.nn.conv2d(x, w, strides=[1, stride, stride, 1], padding='SAME', name=name + '_residualProjection')
-
