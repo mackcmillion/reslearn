@@ -4,7 +4,7 @@ from resnet_34 import resnet_34
 
 
 def main():
-    x = tf.placeholder(tf.float32, shape=[None, 224, 224, 1])
+    x = tf.placeholder(tf.float32, shape=[None, 224, 224, 3])
     sess = tf.Session()
     net = resnet_34(x)
     merged = tf.merge_all_summaries()
@@ -12,4 +12,4 @@ def main():
     sess.run(tf.initialize_all_variables())
 
 if __name__ == '__main__':
-    main()
+    tf.app.run()

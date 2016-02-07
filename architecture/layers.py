@@ -55,8 +55,8 @@ class Layer(object):
 
 
 class InputLayer(Layer):
-    def __init__(self, name, x):
-        super(InputLayer, self).__init__(name, None, 1)
+    def __init__(self, name, x, out_channels):
+        super(InputLayer, self).__init__(name, None, out_channels)
         self._x = x
 
     def _eval(self):

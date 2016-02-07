@@ -10,8 +10,8 @@ def resnet_34(x):
     builder = NetworkBuilder()
 
     (builder
-     .add_layer(InputLayer('input', x))
-     .add_layer(ConvLayer('conv1', 1, 64, filter_size=7, stride=2))
+     .add_layer(InputLayer('input', x, 3))
+     .add_layer(ConvLayer('conv1', 3, 64, filter_size=7, stride=2))
      .add_layer(PoolingLayer('max_pool', 64, tf.nn.max_pool, filter_size=3, stride=2))
      )
 

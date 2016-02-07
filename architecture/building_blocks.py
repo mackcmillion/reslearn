@@ -33,14 +33,10 @@ class ResidualBuildingBlock(BuildingBlock):
         x = self._layer_before.eval()
         with tf.name_scope(self._name):
             f = self._eval_aux()
-            if x.get_shape() != f.get_shape():
+            if x.get_shape()[1] != f.get_shape()[1]:
                 x = self._adjust_dimensions(x, x.get_shape(), f.get_shape(), self._name)
             b = bias_variable([self._out_channels], name=self._name + '_bias', initial=0.0)
-            # TODO not sure if to apply batch normalization to the residual or only to f
-            residual = f + x
-            return tf.nn.relu(
-                    batch_normalize(residual, self._out_channels, self._name) + b,
-                    name=self._name + 'ResidualReLU')
+            return tf.nn.relu(f + x + b, name=self._name + 'ResidualReLU')
 
 
 def _identity_mapping(x, x_shape, f_shape, name):
@@ -50,5 +46,25 @@ def _identity_mapping(x, x_shape, f_shape, name):
 def _projection_mapping(x, x_shape, f_shape, name):
     # FIXME using 1x1 convolution with stride 2 makes TensorFlow throw exception
     w = unoptimized_weight_variable([2, 2, x_shape[3].value, f_shape[3].value], name=name + '_residualWeights')
-    stride = int(f_shape[3].value / x_shape[3].value)
+    stride = int(x_shape[2].value / f_shape[2].value)
     return tf.nn.conv2d(x, w, strides=[1, stride, stride, 1], padding='SAME', name=name + '_residualProjection')
+    # print x_shape, f_shape
+    # x_shape = x_shape.as_list()
+    # f_shape = f_shape.as_list()
+    # assert 2 * f_shape[1] == x_shape[1]
+    # assert 2 * f_shape[2] == x_shape[2]
+    # assert 2 * x_shape[3] == f_shape[3]
+    #
+    # # simulate 1x1 convolution with stride 2
+    # x = tf.reshape(x, [-1, x_shape[1]])
+    # x = tf.pack(tf.unpack(x)[0::2])
+    # x = tf.reshape(x, [-1])
+    # x = tf.pack(tf.unpack(x)[0::2])
+    # x = tf.reshape(x, [-1, f_shape[1], f_shape[2], x_shape[3]])
+    #
+    # print x_shape, f_shape
+    #
+    # w = unoptimized_weight_variable([x_shape[3], f_shape[3]], name=name + '_residualWeights')
+    # res = tf.matmul(x, w)
+    # print x_shape, f_shape, res.get_shape()
+    # return res
