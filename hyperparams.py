@@ -12,7 +12,7 @@ tf.app.flags.DEFINE_integer('num_classes', 1000,
 tf.app.flags.DEFINE_integer('training_epochs', 100,
                             """Number of iterations for training.""")
 
-tf.app.flags.DEFINE_string('train_dir', '../data/imagenet/synset_sports',
+tf.app.flags.DEFINE_string('train_dir', '../data/imagenet/synsets',
                            """Directory containing the training data.""")
 
 tf.app.flags.DEFINE_integer('batch_size', 5,

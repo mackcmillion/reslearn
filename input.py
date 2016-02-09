@@ -11,8 +11,8 @@ NUM_CONSUMING_THREADS = 1
 
 
 def inputs():
-    filenames = [os.path.join(FLAGS.train_dir, filename) for filename in os.listdir(FLAGS.train_dir)
-                 if os.path.isfile(os.path.join(FLAGS.train_dir, filename))]
+    filenames = _build_filename_list()
+
     filename_queue = tf.train.string_input_producer(filenames, num_epochs=FLAGS.training_epochs, shuffle=True)
 
     example_list = [_read_and_preprocess_image(filename_queue) for _ in xrange(NUM_CONSUMING_THREADS)]
@@ -26,6 +26,13 @@ def inputs():
 
     return image_batch, label_batch
     # return image_batch, tf.reshape(label_batch, [FLAGS.batch_size])
+
+
+def _build_filename_list():
+    image_files = []
+    for dirpath, _, filenames in os.walk(FLAGS.train_dir):
+        image_files += [os.path.join(dirpath, filename) for filename in filenames]
+    return image_files
 
 
 def _read_and_preprocess_image(filename_queue):
