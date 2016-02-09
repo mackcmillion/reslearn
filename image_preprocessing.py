@@ -2,22 +2,29 @@ import tensorflow as tf
 import random
 
 
-def rescale_and_crop(image):
+def augment_scale(image):
     shape = tf.shape(image)
     height = shape[0]
     width = shape[1]
-    new_shorter_edge = tf.constant(random.choice(xrange(256, 480 + 1)))
+    # new_shorter_edge = tf.random_uniform([], minval=256, maxval=480 + 1, dtype=tf.int32)
+    new_shorter_edge = tf.constant(400, dtype=tf.int32)
 
     height_smaller_than_width = tf.less_equal(height, width)
-    new_height, new_width = tf.cond(
+    new_height_and_width = tf.cond(
         height_smaller_than_width,
-        lambda: (new_shorter_edge, (width * new_shorter_edge) / height),
-        lambda: (((height * new_shorter_edge) / width), new_shorter_edge)
+        lambda: (new_shorter_edge, _compute_longer_edge(height, width, new_shorter_edge)),
+        lambda: (_compute_longer_edge(width, height, new_shorter_edge), new_shorter_edge)
     )
 
-    image = tf.image.resize_images(image, new_height, new_width)
-    image = tf.image.random_flip_left_right(image)
+    # workaround since tf.image.resize_images() does not work
+    image = tf.expand_dims(image, 0)
+    image = tf.image.resize_bilinear(image, tf.pack(new_height_and_width), name='RESIZE')
+    image = tf.squeeze(image, [0])
     return tf.image.random_crop(image, [224, 224])
+
+
+def _compute_longer_edge(shorter, longer, new_shorter):
+    return (longer * new_shorter) / shorter
 
 
 def augment_colors(image, mean):
@@ -34,7 +41,7 @@ def augment_colors(image, mean):
 
 
 def preprocess(image):
-    size_adjusted = rescale_and_crop(image)
+    size_adjusted = augment_scale(image)
 
     # FIXME implement mean calculation
     mean = tf.zeros(size_adjusted.get_shape())

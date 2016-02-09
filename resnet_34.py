@@ -2,11 +2,11 @@ import tensorflow as tf
 from architecture.building_blocks import ResidualBuildingBlock
 
 from architecture.layers import NetworkBuilder, ConvLayer, PoolingLayer, ConvLayerWithReLU, \
-    FullyConnectedLayerWithSoftmax, \
-    InputLayer
+    InputLayer, FullyConnectedLayer
 
 
 def resnet_34(x):
+
     builder = NetworkBuilder()
 
     (builder
@@ -60,7 +60,8 @@ def resnet_34(x):
 
     (builder
      .add_layer(PoolingLayer('avg_pool', 512, tf.nn.avg_pool, filter_size=3, stride=1))
-     .add_layer(FullyConnectedLayerWithSoftmax('softmax', 7 * 7 * 512, 1000))
+     # this last layer has no softmax since training and evaluation handle softmax internally
+     .add_layer(FullyConnectedLayer('fc', 7 * 7 * 512, 1000))
      )
 
     return builder.build()

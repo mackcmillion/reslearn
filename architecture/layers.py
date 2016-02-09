@@ -115,16 +115,15 @@ class FullyConnectedLayer(Layer):
             x = tf.reshape(x, [-1, self._in_channels])
         w = weight_variable([self._in_channels, self.out_channels], name=self._name + '_weights',
                             n_hat=x.get_shape()[-1].value)
-        return tf.matmul(x, w, name=self._name)
+        b = bias_variable([self._out_channels], name=self._name + 'bias', initial=0.0)
+        return tf.matmul(x, w, name=self._name) + b
 
 
 class FullyConnectedLayerWithReLU(FullyConnectedLayer):
     def _eval(self):
-        b = bias_variable([self._out_channels], name=self._name + 'ReLU_bias', initial=0.0)
-        return tf.nn.relu(super(FullyConnectedLayerWithReLU, self)._eval() + b, name=self._name + 'ReLU')
+        return tf.nn.relu(super(FullyConnectedLayerWithReLU, self)._eval(), name=self._name + 'ReLU')
 
 
 class FullyConnectedLayerWithSoftmax(FullyConnectedLayer):
     def _eval(self):
-        b = bias_variable([self._out_channels], name=self._name + 'Softmax_bias', initial=0.0)
-        return tf.nn.softmax(super(FullyConnectedLayerWithSoftmax, self)._eval() + b, name=self._name + 'Softmax')
+        return tf.nn.softmax(super(FullyConnectedLayerWithSoftmax, self)._eval(), name=self._name + 'Softmax')

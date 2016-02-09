@@ -1,5 +1,6 @@
 import tensorflow as tf
-from building_blocks import BuildingBlock
+from hyperparams import FLAGS
+from architecture.building_blocks import BuildingBlock
 from tensorflow.examples.tutorials.mnist import input_data
 
 import hyperparams
@@ -37,7 +38,7 @@ with tf.name_scope('summaries'):
 writer = tf.train.SummaryWriter('summaries/mnist_conv_arch', sess.graph_def)
 
 sess.run(tf.initialize_all_variables())
-for i in xrange(hyperparams.TRAINING_STEPS):
+for i in xrange(FLAGS.training_epochs):
     batch = mnist.train.next_batch(50)
     feed = {x: batch[0], y_: batch[1]}
     sess.run(train_step, feed_dict=feed)
