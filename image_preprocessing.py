@@ -1,13 +1,11 @@
 import tensorflow as tf
-import random
 
 
 def augment_scale(image):
     shape = tf.shape(image)
     height = shape[0]
     width = shape[1]
-    # new_shorter_edge = tf.random_uniform([], minval=256, maxval=480 + 1, dtype=tf.int32)
-    new_shorter_edge = tf.constant(400, dtype=tf.int32)
+    new_shorter_edge = tf.random_uniform([], minval=256, maxval=480 + 1, dtype=tf.int32)
 
     height_smaller_than_width = tf.less_equal(height, width)
     new_height_and_width = tf.cond(
@@ -20,6 +18,7 @@ def augment_scale(image):
     image = tf.expand_dims(image, 0)
     image = tf.image.resize_bilinear(image, tf.pack(new_height_and_width), name='RESIZE')
     image = tf.squeeze(image, [0])
+
     return tf.image.random_crop(image, [224, 224])
 
 
