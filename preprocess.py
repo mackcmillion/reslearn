@@ -30,15 +30,26 @@ def _compute_longer_edge(shorter, longer, new_shorter):
 
 
 def augment_colors(image):
+    image = _color_noise(image)
     image = _normalize_colors(image)
 
-    # eigens = tf.self_adjoint_eig(image)
-    # eigenvalues = eigens[0]
-    # eigenvectors = eigens[1:]
-    #
-    # print tf.shape(eigenvalues)
-    # print tf.shape(eigenvectors)
+    return image
 
+
+def _color_noise(image):
+
+    # transposed = tf.transpose(image, [2, 0, 1])
+    # print transposed.get_shape()
+    # eigens = tf.batch_self_adjoint_eig(transposed)
+    # print eigens.get_shape()
+    # eigens = tf.transpose(eigens, [1, 2, 0])
+    # print eigens.get_shape()
+    #
+    # eigenvalues = tf.slice(eigens, [0, 0, 0], [1, -1, -1])
+    # eigenvectors = tf.slice(eigens, [1, 0, 0], [-1, -1, -1])
+    #
+    # print eigenvalues.get_shape()
+    # print eigenvectors.get_shape()
     return image
 
 
@@ -49,8 +60,8 @@ def _normalize_colors(image):
 
     assert gfile.Exists(FLAGS.mean_stddev_path)
     mean_stddev_string = open(FLAGS.mean_stddev_path, 'r').read().split('\n')
-    mean_str = mean_stddev_string[0][1:-1].split(' ')
-    stddev_str = mean_stddev_string[1][1:-1].split(' ')
+    mean_str = mean_stddev_string[0][1:-1].split(',')
+    stddev_str = mean_stddev_string[1][1:-1].split(',')
 
     mean = tf.constant([float(mean_str[0]), float(mean_str[1]), float(mean_str[2])], dtype=tf.float32)
     stddev = tf.constant([float(stddev_str[0]), float(stddev_str[1]), float(stddev_str[2])], dtype=tf.float32)

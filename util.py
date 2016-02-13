@@ -30,3 +30,13 @@ def batch_normalize(x, out_channels, name):
     gamma = tf.Variable(tf.truncated_normal([out_channels]), name=name + '_gamma')
     return tf.nn.batch_norm_with_global_normalization(x, mean, variance, beta, gamma, 0.001,
                                                       scale_after_normalization=True, name=name + '_batchNorm')
+
+
+def encode_one_hot(label_batch, num_labels):
+    sparse_labels = tf.reshape(label_batch, [-1, 1])
+    derived_size = tf.shape(label_batch)[0]
+    indices = tf.reshape(tf.range(0, derived_size, 1), [-1, 1])
+    concated = tf.concat(1, [indices, sparse_labels])
+    outshape = tf.pack([derived_size, num_labels])
+    return tf.sparse_to_dense(concated, outshape, sparse_values=1.0, default_value=0.0)
+
