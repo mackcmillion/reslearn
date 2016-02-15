@@ -3,6 +3,11 @@ from tensorflow.python.platform import gfile
 
 from hyperparams import FLAGS
 
+MEAN = None
+STDDEV = None
+EIGVALS = None
+EIGVECS = None
+
 
 def augment_scale(image):
     shape = tf.shape(image)
@@ -12,9 +17,9 @@ def augment_scale(image):
 
     height_smaller_than_width = tf.less_equal(height, width)
     new_height_and_width = tf.cond(
-        height_smaller_than_width,
-        lambda: (new_shorter_edge, _compute_longer_edge(height, width, new_shorter_edge)),
-        lambda: (_compute_longer_edge(width, height, new_shorter_edge), new_shorter_edge)
+            height_smaller_than_width,
+            lambda: (new_shorter_edge, _compute_longer_edge(height, width, new_shorter_edge)),
+            lambda: (_compute_longer_edge(width, height, new_shorter_edge), new_shorter_edge)
     )
 
     # workaround since tf.image.resize_images() does not work
@@ -38,45 +43,55 @@ def augment_colors(image):
 
 def _color_noise(image):
 
-    # transposed = tf.transpose(image, [2, 0, 1])
-    # print transposed.get_shape()
-    # eigens = tf.batch_self_adjoint_eig(transposed)
-    # print eigens.get_shape()
-    # eigens = tf.transpose(eigens, [1, 2, 0])
-    # print eigens.get_shape()
-    #
-    # eigenvalues = tf.slice(eigens, [0, 0, 0], [1, -1, -1])
-    # eigenvectors = tf.slice(eigens, [1, 0, 0], [-1, -1, -1])
-    #
-    # print eigenvalues.get_shape()
-    # print eigenvectors.get_shape()
-    return image
+    alpha = tf.random_normal([3], 0.0, 0.1, dtype=tf.float32)
+    q = tf.matmul(EIGVECS, tf.expand_dims(alpha * EIGVALS, 1))
+    q = tf.squeeze(q)
+
+    return image + _replicate_to_image_shape(image, q)
 
 
 def _normalize_colors(image):
-    # load precomputed mean/stddev
-    if not gfile.Exists(FLAGS.mean_stddev_path):
-        print 'Mean/stddev file not found. Computing. This might potentially take a long time...'
-
-    assert gfile.Exists(FLAGS.mean_stddev_path)
-    mean_stddev_string = open(FLAGS.mean_stddev_path, 'r').read().split('\n')
-    mean_str = mean_stddev_string[0][1:-1].split(',')
-    stddev_str = mean_stddev_string[1][1:-1].split(',')
-
-    mean = tf.constant([float(mean_str[0]), float(mean_str[1]), float(mean_str[2])], dtype=tf.float32)
-    stddev = tf.constant([float(stddev_str[0]), float(stddev_str[1]), float(stddev_str[2])], dtype=tf.float32)
-
-    total_pixels = tf.shape(image)[0] * tf.shape(image)[1]
-    image_shape = tf.pack([tf.shape(image)[0], tf.shape(image)[1], 3])
-
-    mean = tf.reshape(tf.tile(mean, tf.expand_dims(total_pixels, 0)), image_shape)
-    stddev = tf.reshape(tf.tile(stddev, tf.expand_dims(total_pixels, 0)), image_shape)
+    mean = _replicate_to_image_shape(image, MEAN)
+    stddev = _replicate_to_image_shape(image, STDDEV)
 
     # final normalization
     return (image - mean) / stddev
 
 
-def preprocess(image):
-    size_adjusted = augment_scale(image)
+def _replicate_to_image_shape(image, t):
+    img_shape = tf.shape(image)
+    multiples = tf.pack([img_shape[0], img_shape[1], 1])
+    t = tf.expand_dims(tf.expand_dims(t, 0), 0)
+    t = tf.tile(t, multiples)
+    return t
 
+
+def preprocess(image):
+    if not MEAN:
+        _load_meanstddev()
+    size_adjusted = augment_scale(image)
     return augment_colors(size_adjusted)
+
+
+def _load_meanstddev():
+    global MEAN, STDDEV, EIGVALS, EIGVECS
+    # load precomputed mean/stddev
+    if not gfile.Exists(FLAGS.mean_stddev_path):
+        # print 'Mean/stddev file not found. Computing. This might potentially take a long time...'
+        raise ValueError('Mean/stddev file not found.')
+
+    assert gfile.Exists(FLAGS.mean_stddev_path)
+    mean_stddev_string = open(FLAGS.mean_stddev_path, 'r').read().split('\n')
+    mean_str = mean_stddev_string[0][1:-1].split(',')
+    stddev_str = mean_stddev_string[1][1:-1].split(',')
+    eigval_str = mean_stddev_string[2][1:-1].split(',')
+    eigvecs_str = mean_stddev_string[3][1:-1].split(' ')
+
+    MEAN = tf.constant([float(mean_str[0]), float(mean_str[1]), float(mean_str[2])], dtype=tf.float32)
+    STDDEV = tf.constant([float(stddev_str[0]), float(stddev_str[1]), float(stddev_str[2])], dtype=tf.float32)
+    EIGVALS = tf.constant([float(eigval_str[0]), float(eigval_str[1]), float(eigval_str[2])], dtype=tf.float32)
+    eigvecs = []
+    for eigvec_str in eigvecs_str:
+        eigvec = eigvec_str[1:-1].split(',')
+        eigvecs.append([float(eigvec[0]), float(eigvec[1]), float(eigvec[2])])
+    EIGVECS = tf.constant(eigvecs, dtype=tf.float32, shape=[3, 3])
