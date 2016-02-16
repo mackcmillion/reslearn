@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.python.platform import gfile
+from tensorflow.python.ops import control_flow_ops as cf
 
 from hyperparams import FLAGS
 
@@ -16,7 +17,7 @@ def augment_scale(image):
     new_shorter_edge = tf.random_uniform([], minval=256, maxval=480 + 1, dtype=tf.int32)
 
     height_smaller_than_width = tf.less_equal(height, width)
-    new_height_and_width = tf.cond(
+    new_height_and_width = cf.cond(
             height_smaller_than_width,
             lambda: (new_shorter_edge, _compute_longer_edge(height, width, new_shorter_edge)),
             lambda: (_compute_longer_edge(width, height, new_shorter_edge), new_shorter_edge)
@@ -24,9 +25,10 @@ def augment_scale(image):
 
     # workaround since tf.image.resize_images() does not work
     image = tf.expand_dims(image, 0)
-    image = tf.image.resize_bilinear(image, tf.pack(new_height_and_width), name='RESIZE')
+    image = tf.image.resize_bilinear(image, tf.pack(new_height_and_width))
     image = tf.squeeze(image, [0])
 
+    image = tf.image.random_flip_left_right(image)
     return tf.image.random_crop(image, [224, 224])
 
 
@@ -77,7 +79,6 @@ def _load_meanstddev():
     global MEAN, STDDEV, EIGVALS, EIGVECS
     # load precomputed mean/stddev
     if not gfile.Exists(FLAGS.mean_stddev_path):
-        # print 'Mean/stddev file not found. Computing. This might potentially take a long time...'
         raise ValueError('Mean/stddev file not found.')
 
     assert gfile.Exists(FLAGS.mean_stddev_path)
