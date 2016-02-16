@@ -3,7 +3,7 @@ from tensorflow.python.platform import gfile
 
 import util
 from hyperparams import FLAGS
-from preprocess import preprocess
+from preprocess import preprocess_for_training
 
 from scripts.labelmap import build_filename_list
 
@@ -64,6 +64,6 @@ def _read_and_preprocess_image(filename_queue):
     # prepare image
     image = tf.image.decode_jpeg(image, channels=3)
     feature_img = tf.cast(image, tf.float32)
-    processed_img = preprocess(feature_img)
+    processed_img = preprocess_for_training(feature_img)
 
     return [processed_img, label]

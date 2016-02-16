@@ -10,41 +10,47 @@ EIGVALS = None
 EIGVECS = None
 
 
-def augment_scale(image):
+def resize_random(image, minval, maxval_inc):
+    new_shorter_edge_tensor = tf.random_uniform([], minval=minval, maxval=maxval_inc + 1, dtype=tf.int32)
+    return _resize_aux(image, new_shorter_edge_tensor)
+
+
+def resize(image, new_shorter_edge):
+    new_shorter_edge_tensor = tf.constant(new_shorter_edge, dtype=tf.int32)
+    return _resize_aux(image, new_shorter_edge_tensor)
+
+
+def _resize_aux(image, new_shorter_edge_tensor):
     shape = tf.shape(image)
     height = shape[0]
     width = shape[1]
-    new_shorter_edge = tf.random_uniform([], minval=256, maxval=480 + 1, dtype=tf.int32)
 
     height_smaller_than_width = tf.less_equal(height, width)
     new_height_and_width = cf.cond(
             height_smaller_than_width,
-            lambda: (new_shorter_edge, _compute_longer_edge(height, width, new_shorter_edge)),
-            lambda: (_compute_longer_edge(width, height, new_shorter_edge), new_shorter_edge)
+            lambda: (new_shorter_edge_tensor, _compute_longer_edge(height, width, new_shorter_edge_tensor)),
+            lambda: (_compute_longer_edge(width, height, new_shorter_edge_tensor), new_shorter_edge_tensor)
     )
 
     # workaround since tf.image.resize_images() does not work
     image = tf.expand_dims(image, 0)
     image = tf.image.resize_bilinear(image, tf.pack(new_height_and_width))
-    image = tf.squeeze(image, [0])
+    return tf.squeeze(image, [0])
 
-    image = tf.image.random_flip_left_right(image)
-    return tf.image.random_crop(image, [224, 224])
+
+def random_flip(image):
+    return tf.image.random_flip_left_right(image)
+
+
+def random_crop_to_square(image, size):
+    return tf.image.random_crop(image, [size, size])
 
 
 def _compute_longer_edge(shorter, longer, new_shorter):
     return (longer * new_shorter) / shorter
 
 
-def augment_colors(image):
-    image = _color_noise(image)
-    image = _normalize_colors(image)
-
-    return image
-
-
-def _color_noise(image):
-
+def color_noise(image):
     alpha = tf.random_normal([3], 0.0, 0.1, dtype=tf.float32)
     q = tf.matmul(EIGVECS, tf.expand_dims(alpha * EIGVALS, 1))
     q = tf.squeeze(q)
@@ -52,11 +58,10 @@ def _color_noise(image):
     return image + _replicate_to_image_shape(image, q)
 
 
-def _normalize_colors(image):
+def normalize_colors(image):
     mean = _replicate_to_image_shape(image, MEAN)
     stddev = _replicate_to_image_shape(image, STDDEV)
 
-    # final normalization
     return (image - mean) / stddev
 
 
@@ -68,11 +73,32 @@ def _replicate_to_image_shape(image, t):
     return t
 
 
-def preprocess(image):
+def preprocess_for_training(image):
     if not MEAN:
         _load_meanstddev()
-    size_adjusted = augment_scale(image)
-    return augment_colors(size_adjusted)
+    image = resize_random(image, 256, 480)
+    # swapped cropping and flipping because flip needs image shape to be fully defined - should not make a difference
+    image = random_crop_to_square(image, 224)
+    image = random_flip(image)
+    image = color_noise(image)
+    image = normalize_colors(image)
+    return image
+
+
+def ten_crop(image):
+    image = resize(image, 256)
+    image = tf.image.resize_image_with_crop_or_pad(image, 256, 256)
+    flipped_image = tf.image.flip_left_right(image)
+
+    crops = _extract_5crop(image)
+    flipped_crops = _extract_5crop(flipped_image)
+    return tf.concat(0, [crops, flipped_crops])
+
+
+def _extract_5crop(image):
+    return tf.image.extract_glimpse(image, [224, 224],
+                                    [[0.0, 0.0], [-1.0, -1.0], [-1.0, 1.0], [1.0, -1.0], [1.0, 1.0]],
+                                    centered=True, normalized=True)
 
 
 def _load_meanstddev():
