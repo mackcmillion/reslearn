@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from hyperparams import NET, OPTIMIZER
-from input import inputs
+from input import training_inputs
 
 
 def train():
@@ -47,7 +47,7 @@ def _training_loop(sess, training, merge, writer, step):
 
 def train_step():
 
-    images, true_labels = inputs()
+    images, true_labels = training_inputs()
 
     tf.image_summary('test_image_summary', images)
 

@@ -9,11 +9,11 @@ WNID_LID_MAP = None
 
 def create_label_map_file(overwrite=False, num_logs=10):
 
-    if gfile.Exists(FLAGS.labelmap_path):
+    if gfile.Exists(FLAGS.training_set):
         print 'Labelmap file already exists.'
         if overwrite:
             print 'Overwriting file...'
-            gfile.Remove(FLAGS.labelmap_path)
+            gfile.Remove(FLAGS.training_set)
         else:
             print 'Nothing to do here.'
             return
@@ -22,7 +22,7 @@ def create_label_map_file(overwrite=False, num_logs=10):
     print 'Building filename list...'
     filenames = build_filename_list()
 
-    f = open(FLAGS.labelmap_path, 'w')
+    f = open(FLAGS.training_set, 'w')
 
     log_mod = len(filenames) / num_logs
 

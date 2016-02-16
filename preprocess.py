@@ -101,6 +101,11 @@ def _extract_5crop(image):
                                     centered=True, normalized=True)
 
 
+def preprocess_for_validation(image):
+    # TODO should one normalize here?
+    return ten_crop(image)
+
+
 def _load_meanstddev():
     global MEAN, STDDEV, EIGVALS, EIGVECS
     # load precomputed mean/stddev

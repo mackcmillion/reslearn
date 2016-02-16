@@ -15,14 +15,25 @@ tf.app.flags.DEFINE_integer('training_epochs', 100,
 tf.app.flags.DEFINE_string('train_dir', '/home/max/Studium/Kurse/BA2/data/imagenet/synsets',
                            """Directory containing the training data.""")
 
+tf.app.flags.DEFINE_string('validation_dir', '/home/max/Studium/Kurse/BA2/data/imagenet/validation',
+                           """Directory containing the validation data.""")
+
 tf.app.flags.DEFINE_string('wnid_lid_path', '/home/max/Studium/Kurse/BA2/data/imagenet/map_clsloc.txt',
                            """The file where to load the WNID_LID_MAP from.""")
 
 tf.app.flags.DEFINE_string('mean_stddev_path', '/home/max/Studium/Kurse/BA2/data/imagenet/mean_stddev',
                            """Path where to store/load precomputed mean/stddev over a whole dataset.""")
 
-tf.app.flags.DEFINE_string('labelmap_path', '/home/max/Studium/Kurse/BA2/data/imagenet/labelmap',
+tf.app.flags.DEFINE_string('training_set', '/home/max/Studium/Kurse/BA2/data/imagenet/labelmap',
                            """Path to the file mapping each filename to its label.""")
+
+tf.app.flags.DEFINE_string('validation_set',
+                           "/home/max/Studium/Kurse/BA2/data/imagenet/ILSVRC2015_clsloc_ground_truth.txt",
+                           """Path to the validation label map.""")
+
+tf.app.flags.DEFINE_string('validation_blacklist',
+                           "/home/max/Studium/Kurse/BA2/data/imagenet/ILSVRC2015_clsloc_validation_blacklist.txt",
+                           """Path to the validation set blacklist.""")
 
 tf.app.flags.DEFINE_integer('batch_size', 5,
                             """Size of the mini-batches used for training.""")

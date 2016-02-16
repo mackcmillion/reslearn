@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from hyperparams import NET
-from input import inputs
+from input import validation_inputs
 
 
 def test():
@@ -10,7 +10,7 @@ def test():
 
     sess = tf.Session()
 
-    testing = test_step(k)
+    validate = validation_step(k)
     init_op = tf.initialize_all_variables()
 
     # merged = tf.merge_all_summaries()
@@ -27,7 +27,7 @@ def test():
     try:
         while not coord.should_stop():
             print step
-            _testing_loop(sess, testing, correct, total)
+            _validation_loop(sess, validate, correct, total)
             step += 1
 
     except tf.errors.OutOfRangeError:
@@ -42,19 +42,17 @@ def test():
     sess.close()
 
 
-def _testing_loop(sess, testing, correct, total):
-    in_top_k = sess.run(testing)
+def _validation_loop(sess, validate, correct, total):
+    in_top_k = sess.run(validate)
     if in_top_k:
         correct += 1
     total += 1
     return correct, total
 
 
-def test_step(k):
+def validation_step(k):
 
-    # TODO write custom testing input function
-    # FIXME true_label needs to be the label index
-    crops, true_label = inputs()
+    crops, true_label = validation_inputs()
 
     predictions = NET(crops)
 
