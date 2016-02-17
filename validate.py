@@ -57,6 +57,7 @@ def validation_step(k):
     predictions = NET(crops)
 
     batch_size = tf.shape(predictions)[0]
+    # FIXME use reduce_mean
     pred_sum = tf.reduce_sum(predictions, reduction_indices=0)
     average = pred_sum / batch_size
 

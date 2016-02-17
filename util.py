@@ -13,7 +13,7 @@ def unoptimized_weight_variable(shape, name, stddev=0.1):
 # where n_hat = k**2 * d
 # with k the image size (k x k) and d the number of channels
 def weight_variable(shape, name, n_hat):
-    initial = tf.truncated_normal(shape, stddev=sqrt(n_hat))
+    initial = tf.truncated_normal(shape, stddev=sqrt(2.0 / n_hat))
     return tf.Variable(initial, name=name)
 
 
@@ -40,3 +40,8 @@ def encode_one_hot(label_batch, num_labels):
     outshape = tf.pack([derived_size, num_labels])
     return tf.sparse_to_dense(concated, outshape, sparse_values=1.0, default_value=0.0)
 
+
+def format_time_hhmmss(timediff):
+    hours, remainder = divmod(timediff, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return '%dh %02dm %02ds' % (hours, minutes, seconds)

@@ -1,22 +1,36 @@
 import tensorflow as tf
 
-from resnet_34 import resnet_34
+experiment_name = 'resnet_34_test'
 
-NET = resnet_34
+# constants specifying training behaviour
+tf.app.flags.DEFINE_string('net', 'resnet_34',
+                           """The name of the net to train.""")
 
-OPTIMIZER = tf.train.MomentumOptimizer(0.1, 0.9)
+# OPTIMIZER = tf.train.AdamOptimizer(learning_rate=0.1)
+OPTIMIZER = tf.train.MomentumOptimizer(learning_rate=0.1, momentum=0.9)
 
-tf.app.flags.DEFINE_integer('num_classes', 1000,
+tf.app.flags.DEFINE_integer('num_classes', 2,
                             """Numbers of classes the input data is divided into.""")
 
-tf.app.flags.DEFINE_integer('training_epochs', 100,
+tf.app.flags.DEFINE_integer('training_epochs', 20,
                             """Number of iterations for training.""")
 
-tf.app.flags.DEFINE_string('train_dir', '/home/max/Studium/Kurse/BA2/data/imagenet/synsets',
-                           """Directory containing the training data.""")
+tf.app.flags.DEFINE_integer('batch_size', 5,
+                            """Size of the mini-batches used for training.""")
 
-tf.app.flags.DEFINE_string('validation_dir', '/home/max/Studium/Kurse/BA2/data/imagenet/validation',
-                           """Directory containing the validation data.""")
+tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.01,
+                          """The minimum fraction of all examples to be held in the input queue.
+                          Ensures good shuffling.""")
+
+tf.app.flags.DEFINE_integer('num_consuming_threads', 3,
+                            """Number of threads consuming a filename to produce an image example.""")
+
+# data directory and file paths
+tf.app.flags.DEFINE_string('training_images', '/home/max/Studium/Kurse/BA2/data/imagenet/synsets',
+                           """Directory containing the training image data.""")
+
+tf.app.flags.DEFINE_string('validation_images', '/home/max/Studium/Kurse/BA2/data/imagenet/validation',
+                           """Directory containing the validation image data.""")
 
 tf.app.flags.DEFINE_string('wnid_lid_path', '/home/max/Studium/Kurse/BA2/data/imagenet/map_clsloc.txt',
                            """The file where to load the WNID_LID_MAP from.""")
@@ -35,7 +49,12 @@ tf.app.flags.DEFINE_string('validation_blacklist',
                            "/home/max/Studium/Kurse/BA2/data/imagenet/ILSVRC2015_clsloc_validation_blacklist.txt",
                            """Path to the validation set blacklist.""")
 
-tf.app.flags.DEFINE_integer('batch_size', 5,
-                            """Size of the mini-batches used for training.""")
+# target directory and file paths
+tf.app.flags.DEFINE_string('summary_path', '/home/max/Studium/Kurse/BA2/%s/summaries' % experiment_name,
+                           """Path to save summary files to. Needed for TensorBoard visualization.""")
+
+tf.app.flags.DEFINE_string('checkpoint_path',
+                           '/home/max/Studium/Kurse/BA2/%s/checkpoints' % experiment_name,
+                           """Path to periodically save checkpoints of the training procedure.""")
 
 FLAGS = tf.app.flags.FLAGS

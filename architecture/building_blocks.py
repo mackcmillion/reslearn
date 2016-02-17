@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from layers import Layer, NetworkBuilder
-from util import bias_variable, unoptimized_weight_variable, batch_normalize
+from util import bias_variable, unoptimized_weight_variable
 
 
 class BuildingBlock(Layer):
@@ -21,7 +21,7 @@ class BuildingBlock(Layer):
 
 
 class ResidualBuildingBlock(BuildingBlock):
-    def __init__(self, name, in_channels, out_channels, layers, adjust_dimensions='PROJECTION'):
+    def __init__(self, name, in_channels, out_channels, layers, adjust_dimensions='IDENTITY'):
         super(ResidualBuildingBlock, self).__init__(name, in_channels, out_channels, layers)
         assert adjust_dimensions == 'IDENTITY' or adjust_dimensions == 'PROJECTION'
         if adjust_dimensions == 'IDENTITY':
@@ -40,6 +40,8 @@ class ResidualBuildingBlock(BuildingBlock):
 
 
 def _identity_mapping(x, x_shape, f_shape, name):
+    # FIXME this is actually not correct... don't use 2x2 pooling
+    x = tf.nn.max_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
     return tf.pad(x, [[0, 0], [0, 0], [0, 0], [0, f_shape[3].value - x_shape[3].value]], name=name + '_identityMap')
 
 

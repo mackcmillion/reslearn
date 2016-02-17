@@ -28,6 +28,13 @@ def create_label_map_file(overwrite=False, num_logs=10):
 
     for i, filepath in enumerate(filenames):
         lid = _get_label_id_for_wnid(filepath)
+
+        # FIXME remove
+        if lid == 508:
+            lid = 0
+        elif lid == 354:
+            lid = 1
+
         f.write('%s,%i\n' % (filepath, lid))
 
         if i != 0 and i % log_mod == 0:
@@ -38,7 +45,7 @@ def create_label_map_file(overwrite=False, num_logs=10):
 
 def build_filename_list():
     image_files = []
-    for dirpath, _, filenames in os.walk(FLAGS.train_dir):
+    for dirpath, _, filenames in os.walk(FLAGS.training_images):
         image_files += [os.path.join(dirpath, filename) for filename in filenames]
     return image_files
 
