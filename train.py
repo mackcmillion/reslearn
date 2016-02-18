@@ -4,25 +4,21 @@ import time
 from datetime import datetime as dt
 
 import tensorflow as tf
-from tensorflow.python.platform import gfile
 
 from hyperparams import OPTIMIZER, FLAGS
-from input import training_inputs
 from util import format_time_hhmmss
 
-from scripts.labelmap import create_label_map_file
 
+def train(dataset, net):
 
-def train(net):
-
-    preliminary_computations()
+    dataset.preliminary()
 
     with tf.Graph().as_default():
         global_step = tf.Variable(0, trainable=False)
 
         # input and training procedure
-        images, true_labels = training_inputs()
-        predictions = net(images)
+        images, true_labels = dataset.training_inputs()
+        predictions = net(images, dataset.num_classes)
         loss_per_example = tf.nn.softmax_cross_entropy_with_logits(predictions, true_labels)
         loss = tf.reduce_mean(loss_per_example, name='cross_entropy')
         # the minimize operation also increments the global step
@@ -82,10 +78,3 @@ def train(net):
 
         coord.join(threads)
         sess.close()
-
-
-def preliminary_computations():
-    if not gfile.Exists(FLAGS.checkpoint_path):
-        gfile.MkDir(FLAGS.checkpoint_path)
-
-    create_label_map_file(overwrite=True)

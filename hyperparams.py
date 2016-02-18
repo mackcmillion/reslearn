@@ -3,6 +3,9 @@ import tensorflow as tf
 experiment_name = 'resnet_34_test'
 
 # constants specifying training behaviour
+tf.app.flags.DEFINE_string('dataset', 'imagenet',
+                           """The dataset which to train on.""")
+
 tf.app.flags.DEFINE_string('net', 'resnet_34',
                            """The name of the net to train.""")
 
