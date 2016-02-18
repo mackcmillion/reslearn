@@ -35,7 +35,7 @@ def random_flip(image):
 
 
 def random_crop_to_square(image, size):
-    return tf.image.random_crop(image, [size, size])
+    return tf.random_crop(image, [size, size, 3])
 
 
 def _compute_longer_edge(shorter, longer, new_shorter):

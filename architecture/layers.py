@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 
 import tensorflow as tf
 
+from hyperparams import FLAGS
 from util import weight_variable, bias_variable, batch_normalize
 
 
@@ -74,7 +75,8 @@ class ConvLayer(Layer):
         w = weight_variable(
                 [self._filter_size, self._filter_size, self._in_channels, self._out_channels],
                 name=self._name + '_weights',
-                n_hat=(int(x.get_shape()[1].value / self._stride) ** 2) * self._out_channels
+                n_hat=(int(x.get_shape()[1].value / self._stride) ** 2) * self._out_channels,
+                wd=FLAGS.weight_decay
         )
         return tf.nn.conv2d(x, w, strides=[1, self._stride, self._stride, 1], padding='SAME', name=self._name)
 
@@ -113,8 +115,10 @@ class FullyConnectedLayer(Layer):
         x = self.layer_before.eval()
         if self._in_channels != self.layer_before.out_channels:
             x = tf.reshape(x, [-1, self._in_channels])
-        w = weight_variable([self._in_channels, self.out_channels], name=self._name + '_weights',
-                            n_hat=x.get_shape()[-1].value)
+        w = weight_variable([self._in_channels, self.out_channels],
+                            name=self._name + '_weights',
+                            n_hat=x.get_shape()[-1].value,
+                            wd=FLAGS.weight_decay)
         b = bias_variable([self._out_channels], name=self._name + 'bias', initial=0.0)
         return tf.matmul(x, w, name=self._name) + b
 

@@ -10,7 +10,10 @@ tf.app.flags.DEFINE_string('net', 'resnet_34',
                            """The name of the net to train.""")
 
 # OPTIMIZER = tf.train.AdamOptimizer(learning_rate=0.1)
-OPTIMIZER = tf.train.MomentumOptimizer(learning_rate=0.01, momentum=0.9)
+OPTIMIZER = tf.train.MomentumOptimizer(learning_rate=0.1, momentum=0.9)
+
+tf.app.flags.DEFINE_float('weight_decay', 0.0001,
+                          """The constant float L2 weight decay loss is multiplied with.""")
 
 tf.app.flags.DEFINE_integer('training_epochs', 20,
                             """Number of iterations for training.""")

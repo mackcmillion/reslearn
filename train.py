@@ -19,8 +19,13 @@ def train(dataset, net):
         # input and training procedure
         images, true_labels = dataset.training_inputs()
         predictions = net(images, dataset.num_classes)
-        loss_per_example = tf.nn.softmax_cross_entropy_with_logits(predictions, true_labels)
-        loss = tf.reduce_mean(loss_per_example, name='cross_entropy')
+
+        # calculate loss by cross entropy and all the L2 losses
+        cross_entropy = tf.nn.softmax_cross_entropy_with_logits(predictions, true_labels)
+        cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
+        tf.add_to_collection('losses', cross_entropy_mean)
+        loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
+
         # the minimize operation also increments the global step
         train_op = OPTIMIZER.minimize(loss, global_step=global_step)
 
