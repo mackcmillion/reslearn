@@ -11,9 +11,9 @@ from util import format_time_hhmmss
 
 def train(dataset, net):
 
-    dataset.preliminary()
-
     with tf.Graph().as_default():
+        dataset.preliminary()
+
         global_step = tf.Variable(0, trainable=False)
 
         # input and training procedure

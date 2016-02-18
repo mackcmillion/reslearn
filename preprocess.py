@@ -1,13 +1,5 @@
 import tensorflow as tf
-from tensorflow.python.platform import gfile
 from tensorflow.python.ops import control_flow_ops as cf
-
-from hyperparams import FLAGS
-
-MEAN = None
-STDDEV = None
-EIGVALS = None
-EIGVECS = None
 
 
 def resize_random(image, minval, maxval_inc):
@@ -50,17 +42,17 @@ def _compute_longer_edge(shorter, longer, new_shorter):
     return (longer * new_shorter) / shorter
 
 
-def color_noise(image):
+def color_noise(image, eigvals, eigvecs):
     alpha = tf.random_normal([3], 0.0, 0.1, dtype=tf.float32)
-    q = tf.matmul(EIGVECS, tf.expand_dims(alpha * EIGVALS, 1))
+    q = tf.matmul(eigvecs, tf.expand_dims(alpha * eigvals, 1))
     q = tf.squeeze(q)
 
     return image + _replicate_to_image_shape(image, q)
 
 
-def normalize_colors(image):
-    mean = _replicate_to_image_shape(image, MEAN)
-    stddev = _replicate_to_image_shape(image, STDDEV)
+def normalize_colors(image, mean, stddev):
+    mean = _replicate_to_image_shape(image, mean)
+    stddev = _replicate_to_image_shape(image, stddev)
 
     return (image - mean) / stddev
 
@@ -73,15 +65,13 @@ def _replicate_to_image_shape(image, t):
     return t
 
 
-def preprocess_for_training(image):
-    if not MEAN:
-        _load_meanstddev()
+def preprocess_for_training(image, mean, stddev, eigvals, eigvecs):
     image = resize_random(image, 256, 480)
     # swapped cropping and flipping because flip needs image shape to be fully defined - should not make a difference
     image = random_crop_to_square(image, 224)
     image = random_flip(image)
-    image = color_noise(image)
-    image = normalize_colors(image)
+    image = color_noise(image, eigvals, eigvecs)
+    image = normalize_colors(image, mean, stddev)
     return image
 
 
@@ -104,26 +94,3 @@ def _extract_5crop(image):
 def preprocess_for_validation(image):
     # TODO should one normalize here?
     return ten_crop(image)
-
-
-def _load_meanstddev():
-    global MEAN, STDDEV, EIGVALS, EIGVECS
-    # load precomputed mean/stddev
-    if not gfile.Exists(FLAGS.mean_stddev_path):
-        raise ValueError('Mean/stddev file not found.')
-
-    assert gfile.Exists(FLAGS.mean_stddev_path)
-    mean_stddev_string = open(FLAGS.mean_stddev_path, 'r').read().split('\n')
-    mean_str = mean_stddev_string[0][1:-1].split(',')
-    stddev_str = mean_stddev_string[1][1:-1].split(',')
-    eigval_str = mean_stddev_string[2][1:-1].split(',')
-    eigvecs_str = mean_stddev_string[3][1:-1].split(' ')
-
-    MEAN = tf.constant([float(mean_str[0]), float(mean_str[1]), float(mean_str[2])], dtype=tf.float32)
-    STDDEV = tf.constant([float(stddev_str[0]), float(stddev_str[1]), float(stddev_str[2])], dtype=tf.float32)
-    EIGVALS = tf.constant([float(eigval_str[0]), float(eigval_str[1]), float(eigval_str[2])], dtype=tf.float32)
-    eigvecs = []
-    for eigvec_str in eigvecs_str:
-        eigvec = eigvec_str[1:-1].split(',')
-        eigvecs.append([float(eigvec[0]), float(eigvec[1]), float(eigvec[2])])
-    EIGVECS = tf.constant(eigvecs, dtype=tf.float32, shape=[3, 3])

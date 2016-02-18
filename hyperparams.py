@@ -3,17 +3,14 @@ import tensorflow as tf
 experiment_name = 'resnet_34_test'
 
 # constants specifying training behaviour
-tf.app.flags.DEFINE_string('dataset', 'imagenet',
+tf.app.flags.DEFINE_string('dataset', 'cifar10',
                            """The dataset which to train on.""")
 
 tf.app.flags.DEFINE_string('net', 'resnet_34',
                            """The name of the net to train.""")
 
 # OPTIMIZER = tf.train.AdamOptimizer(learning_rate=0.1)
-OPTIMIZER = tf.train.MomentumOptimizer(learning_rate=0.1, momentum=0.9)
-
-tf.app.flags.DEFINE_integer('num_classes', 2,
-                            """Numbers of classes the input data is divided into.""")
+OPTIMIZER = tf.train.MomentumOptimizer(learning_rate=0.01, momentum=0.9)
 
 tf.app.flags.DEFINE_integer('training_epochs', 20,
                             """Number of iterations for training.""")
@@ -28,7 +25,7 @@ tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.01,
 tf.app.flags.DEFINE_integer('num_consuming_threads', 3,
                             """Number of threads consuming a filename to produce an image example.""")
 
-# data directory and file paths
+# ImageNet data directory and file paths
 tf.app.flags.DEFINE_string('training_images', '/home/max/Studium/Kurse/BA2/data/imagenet/synsets',
                            """Directory containing the training image data.""")
 
@@ -51,6 +48,14 @@ tf.app.flags.DEFINE_string('validation_set',
 tf.app.flags.DEFINE_string('validation_blacklist',
                            "/home/max/Studium/Kurse/BA2/data/imagenet/ILSVRC2015_clsloc_validation_blacklist.txt",
                            """Path to the validation set blacklist.""")
+
+# CIFAR-10 data directory and file paths
+tf.app.flags.DEFINE_string('cifar10_image_path', '/home/max/Studium/Kurse/BA2/data/cifar-10-batches-bin',
+                           """Path to training and test images for CIFAR-10 dataset.""")
+
+tf.app.flags.DEFINE_string('cifar10_mean_stddev_path',
+                           '/home/max/Studium/Kurse/BA2/data/cifar-10-batches-bin/mean_stddev',
+                           """Path where to store/load precomputed mean/stddev over a whole CIFAR-10 dataset.""")
 
 # target directory and file paths
 tf.app.flags.DEFINE_string('summary_path', '/home/max/Studium/Kurse/BA2/%s/summaries' % experiment_name,

@@ -1,3 +1,5 @@
+import os
+
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 
@@ -6,27 +8,43 @@ from scripts.labelmap import build_filename_list
 
 
 def compute_overall_mean_stddev(overwrite=False, num_threads=1, num_logs=10):
-    if gfile.Exists(FLAGS.mean_stddev_path):
+    if FLAGS.dataset == 'cifar10':
+        _compute_overall_mean_stddev(overwrite, num_threads, num_logs,
+                                     image_op=_image_op_cifar10,
+                                     filenames=[os.path.join(FLAGS.cifar10_image_path, 'data_batch_%i.bin' % i) for i in
+                                                xrange(1, 6)],
+                                     mean_stddev_path=FLAGS.cifar10_mean_stddev_path,
+                                     num_files=50000)
+    elif FLAGS.dataset == 'imagenet':
+        _compute_overall_mean_stddev(overwrite, num_threads, num_logs,
+                                     filenames=build_filename_list(),
+                                     mean_stddev_path=FLAGS.mean_stddev_path,
+                                     image_op=_image_op_imagenet)
+    else:
+        raise ValueError('Unknown dataset.')
+
+
+def _compute_overall_mean_stddev(overwrite, num_threads, num_logs, image_op, filenames, mean_stddev_path,
+                                 num_files=None):
+    if gfile.Exists(mean_stddev_path):
         print 'Mean/stddev file already exists.'
         if overwrite:
             print 'Overwriting file...'
-            gfile.Remove(FLAGS.mean_stddev_path)
+            gfile.Remove(mean_stddev_path)
         else:
             print 'Nothing to do here.'
             return
         print
 
-    print 'Building filename list...'
-    filenames = build_filename_list()
-
     mean = tf.Variable([0.0, 0.0, 0.0])
     total = tf.Variable(0.0)
 
-    image = _image_op(filenames)
+    image = image_op(filenames)
 
     # mean computation
     mean_ops = _mean_ops(image, mean, total, num_threads)
-    mean = _init_and_run_in_loop(mean_ops, 'mean', _mean_final_op, (mean, total), num_logs, len(filenames))
+    mean = _init_and_run_in_loop(mean_ops, 'mean', _mean_final_op, (mean, total), num_logs,
+                                 len(filenames) if not num_files else num_files)
 
     tf.reset_default_graph()
 
@@ -34,16 +52,17 @@ def compute_overall_mean_stddev(overwrite=False, num_threads=1, num_logs=10):
     covariance = tf.Variable(tf.zeros([3, 3], dtype=tf.float32))
     total = tf.Variable(0.0)
 
-    image = _image_op(filenames)
+    image = image_op(filenames)
 
     covariance_ops = _covariance_ops(image, covariance, total, mean, num_threads)
     stddev, eigvals, eigvecs = _init_and_run_in_loop(covariance_ops, 'standard deviation', _covariance_final_ops,
-                                                     (covariance, total), num_logs, len(filenames))
+                                                     (covariance, total), num_logs,
+                                                     len(filenames) if not num_files else num_files)
 
     print 'Computed mean as %s and standard deviation as %s.' % (str(mean), str(stddev))
 
-    print 'Saving to file %s...' % FLAGS.mean_stddev_path
-    f = open(FLAGS.mean_stddev_path, 'w')
+    print 'Saving to file %s...' % mean_stddev_path
+    f = open(mean_stddev_path, 'w')
     mean_str = '[%f,%f,%f]' % (mean[0], mean[1], mean[2])
     stddev_str = '[%f,%f,%f]' % (stddev[0], stddev[1], stddev[2])
     eigval_str = '[%f,%f,%f]' % (eigvals[0], eigvals[1], eigvals[2])
@@ -54,11 +73,28 @@ def compute_overall_mean_stddev(overwrite=False, num_threads=1, num_logs=10):
     print 'Done.'
 
 
-def _image_op(filenames):
+def _image_op_imagenet(filenames):
     filename_queue = tf.train.string_input_producer(filenames, num_epochs=1)
     reader = tf.WholeFileReader()
     _, value = reader.read(filename_queue)
     image = tf.image.decode_jpeg(value, channels=3)
+    return tf.cast(image, tf.float32)
+
+
+def _image_op_cifar10(filenames):
+    label_bytes = 1
+    height = 32
+    width = 32
+    depth = 3
+    image_bytes = height * width * depth
+    record_bytes = label_bytes + image_bytes
+
+    filename_queue = tf.train.string_input_producer(filenames, num_epochs=1)
+    reader = tf.FixedLengthRecordReader(record_bytes=record_bytes)
+    _, value = reader.read(filename_queue)
+    record_bytes = tf.decode_raw(value, tf.uint8)
+    depth_major = tf.reshape(tf.slice(record_bytes, [label_bytes], [image_bytes]), [depth, height, width])
+    image = tf.transpose(depth_major, [1, 2, 0])
     return tf.cast(image, tf.float32)
 
 

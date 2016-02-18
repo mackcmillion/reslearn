@@ -13,12 +13,14 @@ class ImageNet(Dataset):
     def __init__(self):
         # FIXME extend to original 1000 classes of ImageNet
         super(ImageNet, self).__init__(2)
+        self._color_data = None
 
     def preliminary(self):
         if not gfile.Exists(FLAGS.checkpoint_path):
             gfile.MkDir(FLAGS.checkpoint_path)
 
-        create_label_map_file(overwrite=True)
+        create_label_map_file(overwrite=False)
+        self._color_data = util.load_meanstddev(FLAGS.cifar10_mean_stddev_path)
 
     def training_inputs(self):
         fps, labels = self._load_training_labelmap()
@@ -36,7 +38,7 @@ class ImageNet(Dataset):
         example_list = [self._read_and_preprocess_image_for_training(filename_queue) for _ in
                         xrange(FLAGS.num_consuming_threads)]
 
-        image_batch, filename_batch = tf.train.shuffle_batch_join(
+        image_batch, label_batch = tf.train.shuffle_batch_join(
                 example_list,
                 batch_size=FLAGS.batch_size,
                 capacity=min_num_examples_in_queue + (FLAGS.num_consuming_threads + 2) * FLAGS.batch_size,
@@ -45,7 +47,7 @@ class ImageNet(Dataset):
                 name='training_example_queue'
         )
 
-        return image_batch, util.encode_one_hot(filename_batch, FLAGS.num_classes)
+        return image_batch, util.encode_one_hot(label_batch, self.num_classes)
 
     @staticmethod
     def _load_training_labelmap():
@@ -63,8 +65,7 @@ class ImageNet(Dataset):
 
         return filepaths, labels
 
-    @staticmethod
-    def _read_and_preprocess_image_for_training(filename_queue):
+    def _read_and_preprocess_image_for_training(self, filename_queue):
         filename, label = filename_queue.dequeue()
 
         # we want to reuse the filename-label-pair for later training steps
@@ -75,6 +76,6 @@ class ImageNet(Dataset):
         # prepare image
         image = tf.image.decode_jpeg(image, channels=3)
         feature_img = tf.cast(image, tf.float32)
-        processed_img = preprocess_for_training(feature_img)
+        processed_img = preprocess_for_training(feature_img, *self._color_data)
 
         return [processed_img, label]
