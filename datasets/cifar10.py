@@ -1,12 +1,12 @@
 import os
 
 import tensorflow as tf
-from tensorflow.python.platform import gfile
 
 import util
 from datasets.dataset import Dataset
 from hyperparams import FLAGS
 from preprocess import preprocess_for_training
+from scripts.meanstddev import compute_overall_mean_stddev
 
 
 class Cifar10(Dataset):
@@ -17,10 +17,8 @@ class Cifar10(Dataset):
         self._color_data = None
 
     def preliminary(self):
-        if not gfile.Exists(FLAGS.checkpoint_path):
-            gfile.MkDir(FLAGS.checkpoint_path)
-
-        self._color_data = util.load_meanstddev(FLAGS.cifar10_mean_stddev_path)
+        compute_overall_mean_stddev(overwrite=False, num_threads=FLAGS.num_consuming_threads, num_logs=10)
+        self._color_data = util.load_meanstddev(FLAGS.mean_stddev_path)
 
     def training_inputs(self):
         filenames = [os.path.join(FLAGS.cifar10_image_path, 'data_batch_%i.bin' % i) for i in xrange(1, 6)]

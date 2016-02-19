@@ -41,7 +41,7 @@ class ResidualBuildingBlock(BuildingBlock):
 
 def _identity_mapping(x, x_shape, f_shape, name):
     # FIXME this is actually not correct... don't use 2x2 pooling
-    x = tf.nn.max_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
+    x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
     return tf.pad(x, [[0, 0], [0, 0], [0, 0], [0, f_shape[3].value - x_shape[3].value]], name=name + '_identityMap')
 
 

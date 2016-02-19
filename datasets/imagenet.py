@@ -6,6 +6,7 @@ from datasets.dataset import Dataset
 from hyperparams import FLAGS
 from preprocess import preprocess_for_training
 from scripts.labelmap import create_label_map_file
+from scripts.meanstddev import compute_overall_mean_stddev
 
 
 class ImageNet(Dataset):
@@ -16,11 +17,9 @@ class ImageNet(Dataset):
         self._color_data = None
 
     def preliminary(self):
-        if not gfile.Exists(FLAGS.checkpoint_path):
-            gfile.MkDir(FLAGS.checkpoint_path)
-
+        compute_overall_mean_stddev(overwrite=False, num_threads=FLAGS.num_consuming_threads, num_logs=10)
         create_label_map_file(overwrite=False)
-        self._color_data = util.load_meanstddev(FLAGS.cifar10_mean_stddev_path)
+        self._color_data = util.load_meanstddev(FLAGS.mean_stddev_path)
 
     def training_inputs(self):
         fps, labels = self._load_training_labelmap()

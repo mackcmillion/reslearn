@@ -4,6 +4,7 @@ import time
 from datetime import datetime as dt
 
 import tensorflow as tf
+from tensorflow.python.platform import gfile
 
 from hyperparams import OPTIMIZER, FLAGS
 from util import format_time_hhmmss
@@ -11,7 +12,21 @@ from util import format_time_hhmmss
 
 def train(dataset, net):
 
+    if not gfile.Exists(FLAGS.checkpoint_path):
+        gfile.MkDir(FLAGS.checkpoint_path)
+    if not gfile.Exists(FLAGS.summary_path):
+        gfile.MkDir(FLAGS.summary_path)
+
+    now = dt.now()
+    exp_dirname = FLAGS.experiment_name + ('_%s' % now.strftime('%Y-%m-%d_%H-%M-%S'))
+    summary_path = os.path.join(FLAGS.summary_path, exp_dirname)
+    checkpoint_path = os.path.join(FLAGS.checkpoint_path, exp_dirname)
+    gfile.MkDir(summary_path)
+    gfile.MkDir(checkpoint_path)
+
     with tf.Graph().as_default():
+        sess = tf.Session(config=tf.ConfigProto(log_device_placement=False))
+
         dataset.preliminary()
 
         global_step = tf.Variable(0, trainable=False)
@@ -25,6 +40,7 @@ def train(dataset, net):
         cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
         tf.add_to_collection('losses', cross_entropy_mean)
         loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
+        tf.scalar_summary('total_loss', loss)
 
         # the minimize operation also increments the global step
         train_op = OPTIMIZER.minimize(loss, global_step=global_step)
@@ -34,14 +50,13 @@ def train(dataset, net):
         summary_op = tf.merge_all_summaries()
         init_op = tf.initialize_all_variables()
 
-        sess = tf.Session(config=tf.ConfigProto(log_device_placement=False))
         coord = tf.train.Coordinator()
 
         # perform initial ops
         sess.run(init_op)
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-        summary_writer = tf.train.SummaryWriter(FLAGS.summary_path, sess.graph_def)
+        summary_writer = tf.train.SummaryWriter(summary_path, sess.graph_def)
 
         # the training loop
         print '%s - Started training.' % dt.now()
@@ -57,6 +72,7 @@ def train(dataset, net):
 
             step = sess.run(global_step)
             # print timing information
+            # TODO make module bigger
             if step % 1 == 0:
                 examples_per_step = FLAGS.batch_size
                 examples_per_sec = examples_per_step / duration
@@ -65,13 +81,14 @@ def train(dataset, net):
                     dt.now(), step, loss_value, examples_per_sec, sec_per_batch)
 
             # add summaries
-            if step % 100 == 0:
+            # TODO make module bigger
+            if step % 1 == 0:
                 summary = sess.run(summary_op)
                 summary_writer.add_summary(summary, step)
 
             # periodically save progress
             if step % 1000 == 0 or step == FLAGS.training_epochs:
-                saver.save(sess, os.path.join(FLAGS.checkpoint_path, 'model.ckpt'), global_step=step)
+                saver.save(sess, os.path.join(checkpoint_path, 'model.ckpt'), global_step=step)
 
             # reached epoch limit - done with training
             if step == FLAGS.training_epochs:
@@ -82,4 +99,3 @@ def train(dataset, net):
                 break
 
         coord.join(threads)
-        sess.close()

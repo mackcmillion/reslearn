@@ -1,6 +1,7 @@
 import tensorflow as tf
 
-experiment_name = 'resnet_34_test'
+tf.app.flags.DEFINE_string('experiment_name', 'resnet_34_test',
+                           """Identifier of the experiment run.""")
 
 # constants specifying training behaviour
 tf.app.flags.DEFINE_string('dataset', 'cifar10',
@@ -9,13 +10,12 @@ tf.app.flags.DEFINE_string('dataset', 'cifar10',
 tf.app.flags.DEFINE_string('net', 'resnet_34',
                            """The name of the net to train.""")
 
-# OPTIMIZER = tf.train.AdamOptimizer(learning_rate=0.1)
-OPTIMIZER = tf.train.MomentumOptimizer(learning_rate=0.1, momentum=0.9)
+OPTIMIZER = tf.train.MomentumOptimizer(learning_rate=0.01, momentum=0.9)
 
 tf.app.flags.DEFINE_float('weight_decay', 0.0001,
                           """The constant float L2 weight decay loss is multiplied with.""")
 
-tf.app.flags.DEFINE_integer('training_epochs', 20,
+tf.app.flags.DEFINE_integer('training_epochs', 10,
                             """Number of iterations for training.""")
 
 tf.app.flags.DEFINE_integer('batch_size', 5,
@@ -27,6 +27,15 @@ tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.01,
 
 tf.app.flags.DEFINE_integer('num_consuming_threads', 3,
                             """Number of threads consuming a filename to produce an image example.""")
+
+tf.app.flags.DEFINE_integer('log_interval', 1,
+                            """The number of steps after which to print a log message.""")
+
+tf.app.flags.DEFINE_integer('summary_interval', 1,
+                            """The number of steps after which to create a new summary.""")
+
+tf.app.flags.DEFINE_integer('checkpoint_interval', 1000,
+                            """The number of steps after which to create a new checkpoint.""")
 
 # ImageNet data directory and file paths
 tf.app.flags.DEFINE_string('training_images', '/home/max/Studium/Kurse/BA2/data/imagenet/synsets',
@@ -61,11 +70,11 @@ tf.app.flags.DEFINE_string('cifar10_mean_stddev_path',
                            """Path where to store/load precomputed mean/stddev over a whole CIFAR-10 dataset.""")
 
 # target directory and file paths
-tf.app.flags.DEFINE_string('summary_path', '/home/max/Studium/Kurse/BA2/%s/summaries' % experiment_name,
+tf.app.flags.DEFINE_string('summary_path', '/home/max/Studium/Kurse/BA2/summaries',
                            """Path to save summary files to. Needed for TensorBoard visualization.""")
 
 tf.app.flags.DEFINE_string('checkpoint_path',
-                           '/home/max/Studium/Kurse/BA2/%s/checkpoints' % experiment_name,
+                           '/home/max/Studium/Kurse/BA2/checkpoints',
                            """Path to periodically save checkpoints of the training procedure.""")
 
 FLAGS = tf.app.flags.FLAGS
