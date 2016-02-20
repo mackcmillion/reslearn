@@ -10,7 +10,8 @@ tf.app.flags.DEFINE_string('dataset', 'cifar10',
 tf.app.flags.DEFINE_string('net', 'resnet_34',
                            """The name of the net to train.""")
 
-OPTIMIZER = tf.train.MomentumOptimizer(learning_rate=0.01, momentum=0.9)
+OPTIMIZER = tf.train.MomentumOptimizer
+OPTIMIZER_ARGS = {'momentum': 0.9}
 
 tf.app.flags.DEFINE_float('weight_decay', 0.0001,
                           """The constant float L2 weight decay loss is multiplied with.""")
@@ -25,6 +26,7 @@ tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.01,
                           """The minimum fraction of all examples to be held in the input queue.
                           Ensures good shuffling.""")
 
+# TODO balance consuming threads
 tf.app.flags.DEFINE_integer('num_consuming_threads', 3,
                             """Number of threads consuming a filename to produce an image example.""")
 

@@ -16,8 +16,10 @@ class Cifar10(Dataset):
         super(Cifar10, self).__init__(10)
         self._color_data = None
 
-    def preliminary(self):
+    def pre_graph(self):
         compute_overall_mean_stddev(overwrite=False, num_threads=FLAGS.num_consuming_threads, num_logs=10)
+
+    def preliminary(self):
         self._color_data = util.load_meanstddev(FLAGS.mean_stddev_path)
 
     def training_inputs(self):

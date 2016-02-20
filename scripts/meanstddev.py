@@ -36,8 +36,8 @@ def _compute_overall_mean_stddev(overwrite, num_threads, num_logs, image_op, fil
             return
         print
 
-    mean = tf.Variable([0.0, 0.0, 0.0])
-    total = tf.Variable(0.0)
+    mean = tf.Variable([0.0, 0.0, 0.0], trainable=False)
+    total = tf.Variable(0.0, trainable=False)
 
     image = image_op(filenames)
 
@@ -49,8 +49,8 @@ def _compute_overall_mean_stddev(overwrite, num_threads, num_logs, image_op, fil
     tf.reset_default_graph()
 
     # stddev and PCA computation
-    covariance = tf.Variable(tf.zeros([3, 3], dtype=tf.float32))
-    total = tf.Variable(0.0)
+    covariance = tf.Variable(tf.zeros([3, 3], dtype=tf.float32), trainable=False)
+    total = tf.Variable(0.0, trainable=False)
 
     image = image_op(filenames)
 
@@ -71,6 +71,8 @@ def _compute_overall_mean_stddev(overwrite, num_threads, num_logs, image_op, fil
     f.close()
 
     print 'Done.'
+
+    tf.reset_default_graph()
 
 
 def _image_op_imagenet(filenames):

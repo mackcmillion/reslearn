@@ -16,8 +16,10 @@ class ImageNet(Dataset):
         super(ImageNet, self).__init__(2)
         self._color_data = None
 
-    def preliminary(self):
+    def pre_graph(self):
         compute_overall_mean_stddev(overwrite=False, num_threads=FLAGS.num_consuming_threads, num_logs=10)
+
+    def preliminary(self):
         create_label_map_file(overwrite=False)
         self._color_data = util.load_meanstddev(FLAGS.mean_stddev_path)
 

@@ -17,7 +17,7 @@ def weight_variable(shape, name, n_hat, wd):
     initial = tf.truncated_normal(shape, stddev=sqrt(2.0 / n_hat))
     var = tf.Variable(initial, name=name)
     if wd:
-        weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name='weight_loss')
+        weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name=name + '_weight_loss')
         tf.add_to_collection('losses', weight_decay)
     return var
 

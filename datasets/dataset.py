@@ -8,6 +8,10 @@ class Dataset(object):
         self._num_classes = num_classes
 
     @abstractmethod
+    def pre_graph(self):
+        pass
+
+    @abstractmethod
     def preliminary(self):
         pass
 
