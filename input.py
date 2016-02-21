@@ -3,7 +3,7 @@ import os
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 
-from hyperparams import FLAGS
+from config import FLAGS
 from preprocess import preprocess_for_validation
 
 

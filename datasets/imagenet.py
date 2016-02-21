@@ -3,7 +3,7 @@ from tensorflow.python.platform import gfile
 
 import util
 from datasets.dataset import Dataset
-from hyperparams import FLAGS
+from config import FLAGS
 from preprocess import preprocess_for_training
 from scripts.labelmap import create_label_map_file
 from scripts.meanstddev import compute_overall_mean_stddev

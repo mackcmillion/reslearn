@@ -1,9 +1,9 @@
 import tensorflow as tf
-from hyperparams import FLAGS
+from config import FLAGS
 from architecture.building_blocks import BuildingBlock
 from tensorflow.examples.tutorials.mnist import input_data
 
-import hyperparams
+import config
 from architecture.layers import InputLayer, ConvLayerWithReLU, PoolingLayer, FullyConnectedLayerWithReLU, \
     FullyConnectedLayerWithSoftmax, NetworkBuilder
 

@@ -2,7 +2,7 @@ import os
 
 from tensorflow.python.platform import gfile
 
-from hyperparams import FLAGS
+from config import FLAGS
 
 WNID_LID_MAP = None
 

@@ -6,24 +6,12 @@ import time
 from datetime import datetime as dt
 
 import tensorflow as tf
-from tensorflow.python.platform import gfile
 
-from hyperparams import OPTIMIZER, FLAGS, OPTIMIZER_ARGS
+from config import OPTIMIZER, FLAGS, OPTIMIZER_ARGS
 from util import format_time_hhmmss
 
 
 def train(dataset, model):
-    if not gfile.Exists(FLAGS.checkpoint_path):
-        gfile.MkDir(FLAGS.checkpoint_path)
-    if not gfile.Exists(FLAGS.summary_path):
-        gfile.MkDir(FLAGS.summary_path)
-
-    now = dt.now()
-    exp_dirname = FLAGS.experiment_name + ('_%s' % now.strftime('%Y-%m-%d_%H-%M-%S'))
-    summary_path = os.path.join(FLAGS.summary_path, exp_dirname)
-    checkpoint_path = os.path.join(FLAGS.checkpoint_path, exp_dirname)
-    gfile.MkDir(summary_path)
-    gfile.MkDir(checkpoint_path)
 
     dataset.pre_graph()
 

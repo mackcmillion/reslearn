@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 
 import tensorflow as tf
 
-from hyperparams import FLAGS
+from config import FLAGS
 from util import weight_variable, bias_variable, batch_normalize
 
 

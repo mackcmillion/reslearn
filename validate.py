@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from hyperparams import NET
+from config import NET
 from input import validation_inputs
 
 

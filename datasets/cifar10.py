@@ -4,7 +4,7 @@ import tensorflow as tf
 
 import util
 from datasets.dataset import Dataset
-from hyperparams import FLAGS
+from config import FLAGS
 from preprocess import preprocess_for_training
 from scripts.meanstddev import compute_overall_mean_stddev
 
