@@ -1,15 +1,17 @@
 import tensorflow as tf
 
+# global run config
 tf.app.flags.DEFINE_string('experiment_name', 'resnet_34_test',
                            """Identifier of the experiment run.""")
 
-# constants specifying training behaviour
 tf.app.flags.DEFINE_string('dataset', 'cifar10',
                            """The dataset which to train on.""")
 
 tf.app.flags.DEFINE_string('model', 'resnet-34',
                            """The name of the net to train.""")
 
+
+# constants specifying training and validation behaviour
 OPTIMIZER = tf.train.MomentumOptimizer
 OPTIMIZER_ARGS = {'momentum': 0.9}
 
@@ -39,6 +41,19 @@ tf.app.flags.DEFINE_integer('summary_interval', 1,
 tf.app.flags.DEFINE_integer('checkpoint_interval', 1,
                             """The number of steps after which to create a new checkpoint.""")
 
+tf.app.flags.DEFINE_integer('val_interval_secs', 60,
+                            """Interval seconds in which to poll the checkpoint directory for new checkpoint files.""")
+
+tf.app.flags.DEFINE_integer('max_num_examples', 100,
+                            """Maximum number of examples to process in one validation run.""")
+
+tf.app.flags.DEFINE_boolean('run_once', False,
+                            """Whether to run eval only once.""")
+
+tf.app.flags.DEFINE_integer('top_k', 1,
+                            """When validating, compute the top-k-error.""")
+
+
 # ImageNet data directory and file paths
 tf.app.flags.DEFINE_string('training_images', '/home/max/Studium/Kurse/BA2/data/imagenet/synsets',
                            """Directory containing the training image data.""")
@@ -63,6 +78,7 @@ tf.app.flags.DEFINE_string('validation_blacklist',
                            "/home/max/Studium/Kurse/BA2/data/imagenet/ILSVRC2015_clsloc_validation_blacklist.txt",
                            """Path to the validation set blacklist.""")
 
+
 # CIFAR-10 data directory and file paths
 tf.app.flags.DEFINE_string('cifar10_image_path', '/home/max/Studium/Kurse/BA2/data/cifar-10-batches-bin',
                            """Path to training and test images for CIFAR-10 dataset.""")
@@ -70,6 +86,7 @@ tf.app.flags.DEFINE_string('cifar10_image_path', '/home/max/Studium/Kurse/BA2/da
 tf.app.flags.DEFINE_string('cifar10_mean_stddev_path',
                            '/home/max/Studium/Kurse/BA2/data/cifar-10-batches-bin/mean_stddev',
                            """Path where to store/load precomputed mean/stddev over a whole CIFAR-10 dataset.""")
+
 
 # target directory and file paths
 tf.app.flags.DEFINE_string('summary_path', '/home/max/Studium/Kurse/BA2/summaries',

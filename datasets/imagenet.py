@@ -80,3 +80,6 @@ class ImageNet(Dataset):
         processed_img = preprocess_for_training(feature_img, *self._color_data)
 
         return [processed_img, label]
+
+    def validation_inputs(self):
+        pass

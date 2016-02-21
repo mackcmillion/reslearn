@@ -1,64 +1,69 @@
+# most of this code is taken from
+# https://tensorflow.googlesource.com/tensorflow/+/master/tensorflow/models/image/cifar10/cifar10_eval.py
+import time
+
 import tensorflow as tf
+from datetime import datetime as dt
 
-from config import NET
-from input import validation_inputs
+from config import FLAGS
 
 
-def test():
+def validate(dataset, model, summary_path, checkpoint_path):
 
-    k = 1
+    # input and validation procedure
+    images, true_labels = dataset.validation_inputs()
+    predictions = model.inference(images, dataset.num_classes)
+    top_k_op = _top_k_10crop(predictions, true_labels)
 
-    sess = tf.Session()
+    saver = tf.train.Saver(tf.trainable_variables())
 
-    validate = validation_step(k)
-    init_op = tf.initialize_all_variables()
+    summary_op = tf.merge_all_summaries()
+    summary_writer = tf.train.SummaryWriter(summary_path, tf.get_default_graph().as_graph_def())
 
-    # merged = tf.merge_all_summaries()
-    # writer = tf.train.SummaryWriter('summaries/resnet_34_test', sess.graph_def)
+    finished = False
+    while not finished:
+        finished = _eval_once(saver, checkpoint_path, summary_writer, top_k_op, summary_op)
+        if FLAGS.run_once:
+            break
+        time.sleep(FLAGS.val_interval_secs)
 
-    sess.run(init_op)
 
-    coord = tf.train.Coordinator()
-    threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+def _eval_once(saver, checkpoint_path, summary_writer, top_k_op, summary_op):
+    with tf.Session() as sess:
+        ckpt = tf.train.get_checkpoint_state(checkpoint_path)
+        if ckpt and ckpt.model_checkpoint_path:
+            saver.restore(sess, ckpt.model_checkpoint_path)
+            global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
+        else:
+            print '%s - No new checkpoint file found.' % dt.now()
+            return False
 
-    step = 0
-    correct = 0
-    total = 0
-    try:
-        while not coord.should_stop():
-            print step
-            _validation_loop(sess, validate, correct, total)
-            step += 1
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+        try:
+            true_count = 0
+            step = 0
+            while step < FLAGS.max_num_examples and not coord.should_stop():
+                prediction = sess.run([top_k_op])
+                true_count += prediction
+                step += 1
 
-    except tf.errors.OutOfRangeError:
-        print 'Done training - epoch limit reached.'
-    finally:
+            accuracy = true_count / step
+            validation_error = 1 - accuracy
+            print '%s - validation error = %.3f' % (dt.now(), validation_error)
+
+            summary = tf.Summary()
+            summary.ParseFromString(sess.run(summary_op))
+            summary.value.add('validation_error_raw', simple_value=validation_error)
+            summary_writer.add_summary(summary, global_step)
+
+        except Exception as e:  # pylint: disable=broad-except
+            coord.request_stop(e)
+
         coord.request_stop()
-
-    coord.join(threads)
-
-    print 'Top %i error: %f' % (k, (correct * 1.0) / total)
-
-    sess.close()
+        coord.join(threads, stop_grace_period_secs=10)
 
 
-def _validation_loop(sess, validate, correct, total):
-    in_top_k = sess.run(validate)
-    if in_top_k:
-        correct += 1
-    total += 1
-    return correct, total
-
-
-def validation_step(k):
-
-    crops, true_label = validation_inputs()
-
-    predictions = NET(crops)
-
-    batch_size = tf.shape(predictions)[0]
-    # FIXME use reduce_mean
-    pred_sum = tf.reduce_sum(predictions, reduction_indices=0)
-    average = pred_sum / batch_size
-
-    return tf.nn.in_top_k(average, true_label, k)
+def _top_k_10crop(predictions, true_labels):
+    pred_mean = tf.reduce_mean(predictions, reduction_indices=0)
+    return tf.nn.in_top_k(pred_mean, true_labels, FLAGS.top_k)

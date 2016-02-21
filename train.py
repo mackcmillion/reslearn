@@ -11,11 +11,10 @@ from config import OPTIMIZER, FLAGS, OPTIMIZER_ARGS
 from util import format_time_hhmmss
 
 
-def train(dataset, model):
+def train(dataset, model, summary_path, checkpoint_path):
 
     dataset.pre_graph()
 
-    # with tf.Graph().as_default():
     sess = tf.Session(config=tf.ConfigProto(log_device_placement=False))
 
     dataset.preliminary()
@@ -52,7 +51,7 @@ def train(dataset, model):
         _, loss_value, train_err_value = sess.run([train_op, loss_op, train_err_op])
         duration = time.time() - start_time
 
-        assert not math.isnan(loss_value), 'Model diverged with loss = NaN.'
+        assert not math.isnan(loss_value), '%s - Model diverged with loss = NaN.' % dt.now()
 
         step = sess.run(global_step)
         # print timing information

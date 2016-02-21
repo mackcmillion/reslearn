@@ -65,3 +65,6 @@ class Cifar10(Dataset):
         # TODO implement correct image preprocessing for CIFAR-10
         image = preprocess_for_training(image, *self._color_data)
         return image, tf.squeeze(label)
+
+    def validation_inputs(self):
+        pass

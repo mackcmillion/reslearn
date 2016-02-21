@@ -19,6 +19,10 @@ class Dataset(object):
     def training_inputs(self):
         pass
 
+    @abstractmethod
+    def validation_inputs(self):
+        pass
+
     @property
     def num_classes(self):
         return self._num_classes
