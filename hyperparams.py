@@ -7,7 +7,7 @@ tf.app.flags.DEFINE_string('experiment_name', 'resnet_34_test',
 tf.app.flags.DEFINE_string('dataset', 'cifar10',
                            """The dataset which to train on.""")
 
-tf.app.flags.DEFINE_string('net', 'resnet_34',
+tf.app.flags.DEFINE_string('model', 'resnet-34',
                            """The name of the net to train.""")
 
 OPTIMIZER = tf.train.MomentumOptimizer
@@ -36,7 +36,7 @@ tf.app.flags.DEFINE_integer('log_interval', 1,
 tf.app.flags.DEFINE_integer('summary_interval', 1,
                             """The number of steps after which to create a new summary.""")
 
-tf.app.flags.DEFINE_integer('checkpoint_interval', 1000,
+tf.app.flags.DEFINE_integer('checkpoint_interval', 1,
                             """The number of steps after which to create a new checkpoint.""")
 
 # ImageNet data directory and file paths

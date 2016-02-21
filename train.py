@@ -12,7 +12,7 @@ from hyperparams import OPTIMIZER, FLAGS, OPTIMIZER_ARGS
 from util import format_time_hhmmss
 
 
-def train(dataset, net):
+def train(dataset, model):
     if not gfile.Exists(FLAGS.checkpoint_path):
         gfile.MkDir(FLAGS.checkpoint_path)
     if not gfile.Exists(FLAGS.summary_path):
@@ -36,7 +36,7 @@ def train(dataset, net):
 
     # input and training procedure
     images, true_labels = dataset.training_inputs()
-    predictions = net(images, dataset.num_classes)
+    predictions = model.inference(images, dataset.num_classes)
     loss_op = loss(predictions, true_labels)
     train_err_op = training_error(predictions, true_labels)
     train_op = training_op(loss_op, train_err_op, global_step)
@@ -84,7 +84,7 @@ def train(dataset, net):
 
         # periodically save progress
         if step % FLAGS.checkpoint_interval == 0 or step == FLAGS.training_epochs:
-            saver.save(sess, os.path.join(checkpoint_path, 'model.ckpt'), global_step=step)
+            saver.save(sess, os.path.join(checkpoint_path, model.name + '.ckpt'), global_step=step)
 
         # reached epoch limit - done with training
         if step == FLAGS.training_epochs:
@@ -160,10 +160,12 @@ def training_op(total_loss, train_err, global_step):
         if grad:
             tf.histogram_summary(var.op.name + '/gradients', grad)
 
-    variable_averages = tf.train.ExponentialMovingAverage(0.9999, global_step)
-    variable_averages_op = variable_averages.apply(tf.trainable_variables())
+    # this is not used in the paper
+    # variable_averages = tf.train.ExponentialMovingAverage(0.9999, global_step)
+    # variable_averages_op = variable_averages.apply(tf.trainable_variables())
 
-    with tf.control_dependencies([apply_gradient_op, variable_averages_op]):
+    with tf.control_dependencies([apply_gradient_op,  # variable_averages_op
+                                  ]):
         train_op = tf.no_op(name='train')
 
     return train_op

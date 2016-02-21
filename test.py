@@ -9,31 +9,48 @@ sess = tf.InteractiveSession()
 
 x = tf.range(0, 2 * 4 * 4 * 2)
 x = tf.reshape(x, [2, 4, 4, 2])
+x = tf.cast(x, tf.float32)
 
 print x.eval()
 
-x = tf.reshape(x, [-1, 4])
+x_shape = x.get_shape().as_list()
+mask = [[row % 2 == 0 and column % 2 == 0 for column in xrange(x_shape[2])] for row in xrange(x_shape[1])]
+mask = tf.cast(tf.constant(mask, dtype=tf.bool), tf.float32)
 
-print
-print x.eval()
 
-x_list = tf.unpack(x)
+mask = tf.expand_dims(tf.expand_dims(mask, 0), 3)
+mask = tf.tile(mask, [x_shape[0], 1, 1, x_shape[3]])
+print mask
+print mask.eval()
 
-print
-print x_list
+x_masked = tf.mul(x, mask)
+print x_masked.eval()
 
-x_packed = tf.pack(x_list[0::2])
+print tf.nn.max_pool(x_masked, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME').eval()
 
-print
-print x_packed.eval()
+# x = tf.reshape(x, [-1, 4])
+#
+# print
+# print x.eval()
+#
+# x_list = tf.unpack(x)
+#
+# print
+# print x_list
+#
+# x_packed = tf.pack(x_list[0::2])
+#
+# print
+# print x_packed.eval()
+#
+# x = tf.reshape(x_packed, [-1])
+# x_list = tf.unpack(x)
+# x_packed = tf.pack(x_list[0::2])
+# x = tf.reshape(x_packed, [-1, 2, 2, 2])
+#
+# print
+# print x.eval()
 
-x = tf.reshape(x_packed, [-1])
-x_list = tf.unpack(x)
-x_packed = tf.pack(x_list[0::2])
-x = tf.reshape(x_packed, [-1, 2, 2, 2])
-
-print
-print x.eval()
 # from hyperparams import FLAGS
 #
 # sess = tf.Session()

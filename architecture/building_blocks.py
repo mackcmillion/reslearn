@@ -21,7 +21,7 @@ class BuildingBlock(Layer):
 
 
 class ResidualBuildingBlock(BuildingBlock):
-    def __init__(self, name, in_channels, out_channels, layers, adjust_dimensions='IDENTITY'):
+    def __init__(self, name, in_channels, out_channels, layers, adjust_dimensions='PROJECTION'):
         super(ResidualBuildingBlock, self).__init__(name, in_channels, out_channels, layers)
         assert adjust_dimensions == 'IDENTITY' or adjust_dimensions == 'PROJECTION'
         if adjust_dimensions == 'IDENTITY':
@@ -40,33 +40,36 @@ class ResidualBuildingBlock(BuildingBlock):
 
 
 def _identity_mapping(x, x_shape, f_shape, name):
-    # FIXME this is actually not correct... don't use 2x2 pooling
-    x = tf.nn.avg_pool(x, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
+    # spatial resolution reduction using a simulated 1x1 max-pooling with stride 2
+    x = tf.nn.max_pool(_mask_input(x), [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
     return tf.pad(x, [[0, 0], [0, 0], [0, 0], [0, f_shape[3].value - x_shape[3].value]], name=name + '_identityMap')
 
 
 def _projection_mapping(x, x_shape, f_shape, name):
-    # FIXME using 1x1 convolution with stride 2 makes TensorFlow throw exception
-    w = unoptimized_weight_variable([2, 2, x_shape[3].value, f_shape[3].value], name=name + '_residualWeights')
-    stride = int(x_shape[2].value / f_shape[2].value)
-    return tf.nn.conv2d(x, w, strides=[1, stride, stride, 1], padding='SAME', name=name + '_residualProjection')
-    # print x_shape, f_shape
-    # x_shape = x_shape.as_list()
-    # f_shape = f_shape.as_list()
-    # assert 2 * f_shape[1] == x_shape[1]
-    # assert 2 * f_shape[2] == x_shape[2]
-    # assert 2 * x_shape[3] == f_shape[3]
-    #
-    # # simulate 1x1 convolution with stride 2
-    # x = tf.reshape(x, [-1, x_shape[1]])
-    # x = tf.pack(tf.unpack(x)[0::2])
-    # x = tf.reshape(x, [-1])
-    # x = tf.pack(tf.unpack(x)[0::2])
-    # x = tf.reshape(x, [-1, f_shape[1], f_shape[2], x_shape[3]])
-    #
-    # print x_shape, f_shape
-    #
-    # w = unoptimized_weight_variable([x_shape[3], f_shape[3]], name=name + '_residualWeights')
-    # res = tf.matmul(x, w)
-    # print x_shape, f_shape, res.get_shape()
-    # return res
+    # TODO this is ugly. Replace with 1x1 convolution as soon as it's supported.
+    # convolution-like feature extraction using 1x1 max-pooling with stride 2
+    extracted = tf.nn.max_pool(_mask_input(x), [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
+    w = unoptimized_weight_variable([x_shape[3].value, f_shape[3].value], name=name + '_residualWeights')
+
+    # simulate 1x1 convolution using batch matrix multiplication
+    extracted_shape = extracted.get_shape().as_list()
+    # stack all the extracted patches of the image
+    patch_stack = tf.reshape(extracted, [extracted_shape[0], -1, extracted_shape[3]])
+    # make W the same batch size as the input by simply replicating it
+    w_expanded = tf.tile(tf.expand_dims(w, 0), [extracted_shape[0], 1, 1])
+    # final matrix multiplication - should apply the operation specified in the documentation of conv2d:
+    # "3. For each patch, right-multiplies the filter matrix and the image patch vector."
+    projection = tf.batch_matmul(patch_stack, w_expanded)
+    # make the result a 2D image batch again
+    return tf.reshape(projection, [extracted_shape[0], extracted_shape[1], extracted_shape[2], -1])
+
+
+def _mask_input(x):
+    x_shape = x.get_shape().as_list()
+    mask = [[row % 2 == 0 and column % 2 == 0 for column in xrange(x_shape[2])] for row in xrange(x_shape[1])]
+    mask = tf.cast(tf.constant(mask, dtype=tf.bool), tf.float32)
+
+    mask = tf.expand_dims(tf.expand_dims(mask, 0), 3)
+    mask = tf.tile(mask, [x_shape[0], 1, 1, x_shape[3]])
+
+    return tf.mul(x, mask)
