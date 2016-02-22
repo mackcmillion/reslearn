@@ -104,6 +104,6 @@ def _extract_5crop(image):
                                     centered=True, normalized=True)
 
 
-def preprocess_for_validation(image, mean, stddev):
+def preprocess_for_evaluation(image, mean, stddev):
     image = normalize_colors(image, mean, stddev)
     return ten_crop(image)

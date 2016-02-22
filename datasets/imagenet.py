@@ -81,5 +81,5 @@ class ImageNet(Dataset):
 
         return [processed_img, label]
 
-    def validation_inputs(self):
+    def evaluation_inputs(self):
         pass

@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.python.platform import gfile
 
 from config import FLAGS
-from preprocess import preprocess_for_validation
+from preprocess import preprocess_for_evaluation
 
 
 def validation_inputs():
@@ -52,6 +52,6 @@ def _read_and_preprocess_image_for_validation(filename_queue):
     # prepare image
     image = tf.image.decode_jpeg(image, channels=3)
     feature_img = tf.cast(image, tf.float32)
-    processed_img = preprocess_for_validation(feature_img)
+    processed_img = preprocess_for_evaluation(feature_img)
 
     return [processed_img, label]

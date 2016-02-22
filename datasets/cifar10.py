@@ -5,7 +5,7 @@ import tensorflow as tf
 import util
 from datasets.dataset import Dataset
 from config import FLAGS
-from preprocess import preprocess_for_training, preprocess_for_validation
+from preprocess import preprocess_for_training, preprocess_for_evaluation
 from scripts.meanstddev import compute_overall_mean_stddev
 
 
@@ -45,7 +45,7 @@ class Cifar10(Dataset):
         )
         return image_batch, util.encode_one_hot(label_batch, self.num_classes)
 
-    def validation_inputs(self, validation_data=True):
+    def evaluation_inputs(self, validation_data=True):
         if validation_data:
             filenames = [os.path.join(FLAGS.cifar10_image_path, 'data_batch_%i.bin' % i) for i in xrange(1, 6)]
             num_images = self._NUM_VALIDATION_IMAGES
@@ -58,7 +58,7 @@ class Cifar10(Dataset):
         image, label = self._read_image(filename_queue)
 
         # TODO implement correct image preprocessing for CIFAR-10
-        image = preprocess_for_validation(image, *self._color_data[:2])
+        image = preprocess_for_evaluation(image, *self._color_data[:2])
 
         min_num_examples_in_queue = int(FLAGS.min_frac_examples_in_queue * num_images)
 

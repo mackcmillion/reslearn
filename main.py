@@ -10,7 +10,7 @@ from datasets.imagenet import ImageNet
 from config import FLAGS
 from models.resnet34 import ResNet34
 from train import train
-from validate import validate
+from validate import evaluate
 
 MODEL_DICT = {'resnet-34': ResNet34}
 DATASET_DICT = {'cifar10': Cifar10, 'imagenet': ImageNet}
@@ -30,9 +30,9 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     now = dt.now()
     exp_dirname = FLAGS.experiment_name + ('_%s' % now.strftime('%Y-%m-%d_%H-%M-%S'))
-    exp_dirname_val = exp_dirname + '_validation'
+    exp_dirname_eval = exp_dirname + '_test'
     summary_path = os.path.join(FLAGS.summary_path, exp_dirname)
-    summary_path_val = os.path.join(FLAGS.summary_path, exp_dirname_val)
+    summary_path_eval = os.path.join(FLAGS.summary_path, exp_dirname_eval)
     checkpoint_path = os.path.join(FLAGS.checkpoint_path, exp_dirname)
     gfile.MkDir(summary_path)
     gfile.MkDir(checkpoint_path)
@@ -42,18 +42,21 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     dataset.pre_graph()
 
-    training_thread = threading.Thread(target=train, args=(dataset, model, summary_path, checkpoint_path),
+    training_thread = threading.Thread(target=train,
+                                       args=(dataset, model, summary_path, checkpoint_path),
                                        name='training-thread')
-    validation_thread = threading.Thread(target=validate, args=(dataset, model, summary_path_val, checkpoint_path),
+    evaluation_thread = threading.Thread(target=evaluate,
+                                         args=(dataset, model, summary_path_eval, checkpoint_path),
                                          name='validation-thread')
 
     training_thread.start()
-    validation_thread.start()
+    evaluation_thread.start()
 
     training_thread.join()
-    validation_thread.join()
+    evaluation_thread.join()
 
-    print 'Finished %s.' % FLAGS.experiment_name
+    print '%s - Finished %s.' % (dt.now(), FLAGS.experiment_name)
+
 
 if __name__ == '__main__':
     tf.app.run()

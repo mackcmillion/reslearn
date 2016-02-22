@@ -20,7 +20,7 @@ class Dataset(object):
         pass
 
     @abstractmethod
-    def validation_inputs(self):
+    def evaluation_inputs(self):
         pass
 
     @property
