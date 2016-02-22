@@ -10,7 +10,7 @@ from datasets.imagenet import ImageNet
 from config import FLAGS
 from models.resnet34 import ResNet34
 from train import train
-from validate import evaluate
+from evaluate import evaluate
 
 MODEL_DICT = {'resnet-34': ResNet34}
 DATASET_DICT = {'cifar10': Cifar10, 'imagenet': ImageNet}

@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+from architecture.layers import ConvLayerWithReLU, ConvLayer
 from layers import Layer, NetworkBuilder
 from util import bias_variable, unoptimized_weight_variable
 
@@ -21,9 +22,10 @@ class BuildingBlock(Layer):
 
 
 class ResidualBuildingBlock(BuildingBlock):
-    def __init__(self, name, in_channels, out_channels, layers, adjust_dimensions='PROJECTION'):
+    def __init__(self, name, in_channels, out_channels, layers, adjust_dimensions):
         super(ResidualBuildingBlock, self).__init__(name, in_channels, out_channels, layers)
-        assert adjust_dimensions == 'IDENTITY' or adjust_dimensions == 'PROJECTION'
+        assert adjust_dimensions == 'IDENTITY' or adjust_dimensions == 'PROJECTION', \
+            'Unknown adjusting strategy %s' % adjust_dimensions
         if adjust_dimensions == 'IDENTITY':
             self._adjust_dimensions = _identity_mapping
         else:
@@ -73,3 +75,29 @@ def _mask_input(x):
     mask = tf.tile(mask, [x_shape[0], 1, 1, x_shape[3]])
 
     return tf.mul(x, mask)
+
+
+def conv3x3_block(in_channels, out_channels, adjust_dimensions, namespace):
+    if in_channels != out_channels:
+        assert out_channels == 2 * in_channels
+        stride = 2
+    else:
+        stride = 1
+    return ResidualBuildingBlock(
+            namespace, in_channels, out_channels,
+            [
+                ConvLayerWithReLU(namespace + '_1', in_channels, out_channels, filter_size=3,
+                                  stride=stride),
+                ConvLayer(namespace + '_2', out_channels, out_channels, filter_size=3, stride=1)
+            ],
+            adjust_dimensions=adjust_dimensions
+    )
+
+
+def add_n_conv3x3_blocks(builder, n, in_channels, out_channels, adjust_dimensions, namespace):
+    assert n > 0
+    # add first 3x3 layer that maybe performs downsampling
+    builder.add_layer(conv3x3_block(in_channels, out_channels, adjust_dimensions, namespace + '_1'))
+    # add the rest n-1 layers that keep dimensions
+    for i in xrange(1, n):
+        builder.add_layer(conv3x3_block(out_channels, out_channels, adjust_dimensions, namespace + ('_%i' % (i + 1))))

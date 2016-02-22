@@ -10,6 +10,16 @@ tf.app.flags.DEFINE_string('dataset', 'cifar10',
 tf.app.flags.DEFINE_string('model', 'resnet-34',
                            """The name of the net to train.""")
 
+tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
+                           """
+                           The method to adjust the dimensions of the input layer when using residual building blocks.
+                           Can have the following values:
+                           - A Identity mapping is used to match dimensions. Missing filters are padded with zeros.
+                           - B Projection mapping is used to match dimensions. Introduces additional parameters which
+                               enable residual learning but increase complexity.
+                           Option C, using projections even if there is no need to adjust dimensions, is not supported.
+                           """)
+
 
 # constants specifying training and validation behaviour
 OPTIMIZER = tf.train.MomentumOptimizer
@@ -41,17 +51,17 @@ tf.app.flags.DEFINE_integer('summary_interval', 1,
 tf.app.flags.DEFINE_integer('checkpoint_interval', 3,
                             """The number of steps after which to create a new checkpoint.""")
 
-tf.app.flags.DEFINE_integer('val_interval_secs', 20,
+tf.app.flags.DEFINE_integer('eval_interval_secs', 20,
                             """Interval seconds in which to poll the checkpoint directory for new checkpoint files.""")
 
 tf.app.flags.DEFINE_integer('max_num_examples', 10,
-                            """Maximum number of examples to process in one validation run.""")
+                            """Maximum number of examples to process in one evaluation run.""")
 
 tf.app.flags.DEFINE_boolean('run_once', False,
                             """Whether to run eval only once.""")
 
 tf.app.flags.DEFINE_integer('top_k', 1,
-                            """When validating, compute the top-k-error.""")
+                            """When evaluating, compute the top-k-error.""")
 
 
 # ImageNet data directory and file paths

@@ -30,7 +30,7 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
             finished = _eval_once(saver, read_checkpoint_path, summary_writer, top_k_op, summary_op, test_err)
             if FLAGS.run_once or finished:
                 break
-            time.sleep(FLAGS.val_interval_secs)
+            time.sleep(FLAGS.eval_interval_secs)
 
 
 def _eval_once(saver, read_checkpoint_path, summary_writer, top_k_op, summary_op, test_err):
@@ -59,10 +59,10 @@ def _eval_once(saver, read_checkpoint_path, summary_writer, top_k_op, summary_op
                 step += 1
 
             accuracy = true_count / step
-            validation_error = 1 - accuracy
-            print '%s - validation error = %.3f' % (dt.now(), validation_error)
+            test_error = 1 - accuracy
+            print '%s - test error = %.3f' % (dt.now(), test_error)
 
-            summary = sess.run(summary_op, feed_dict={test_err: validation_error})
+            summary = sess.run(summary_op, feed_dict={test_err: test_error})
             summary_writer.add_summary(summary, global_step)
 
         except Exception as e:  # pylint: disable=broad-except
@@ -76,6 +76,7 @@ def _eval_once(saver, read_checkpoint_path, summary_writer, top_k_op, summary_op
 
 
 def _top_k_10crop(predictions, true_labels):
+    predictions = tf.nn.softmax(predictions, name='eval_softmax')
     pred_mean = tf.reduce_mean(predictions, reduction_indices=0)
     pred_mean = tf.expand_dims(pred_mean, 0)
     true_labels = tf.expand_dims(true_labels, 0)
