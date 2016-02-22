@@ -41,7 +41,7 @@ tf.app.flags.DEFINE_integer('summary_interval', 1,
 tf.app.flags.DEFINE_integer('checkpoint_interval', 3,
                             """The number of steps after which to create a new checkpoint.""")
 
-tf.app.flags.DEFINE_integer('val_interval_secs', 30,
+tf.app.flags.DEFINE_integer('val_interval_secs', 20,
                             """Interval seconds in which to poll the checkpoint directory for new checkpoint files.""")
 
 tf.app.flags.DEFINE_integer('max_num_examples', 10,

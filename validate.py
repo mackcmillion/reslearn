@@ -10,25 +10,28 @@ from config import FLAGS
 
 def validate(dataset, model, summary_path, checkpoint_path):
 
-    # input and validation procedure
-    images, true_labels = dataset.validation_inputs()
-    predictions = model.inference(images, dataset.num_classes)
-    top_k_op = _top_k_10crop(predictions, true_labels)
+    with tf.Graph().as_default():
+        # input and validation procedure
+        images, true_labels = dataset.validation_inputs()
+        predictions = model.inference(images, dataset.num_classes)
+        top_k_op = _top_k_10crop(predictions, true_labels)
 
-    saver = tf.train.Saver(tf.trainable_variables())
+        saver = tf.train.Saver(tf.trainable_variables())
 
-    summary_op = tf.merge_all_summaries()
-    summary_writer = tf.train.SummaryWriter(summary_path, tf.get_default_graph().as_graph_def())
+        val_err = tf.placeholder(tf.float32, shape=[], name='val_err')
+        tf.scalar_summary('validation_error_raw', val_err)
+        summary_op = tf.merge_all_summaries()
+        summary_writer = tf.train.SummaryWriter(summary_path, tf.get_default_graph().as_graph_def())
 
-    finished = False
-    while not finished:
-        finished = _eval_once(saver, checkpoint_path, summary_writer, top_k_op, summary_op)
-        if FLAGS.run_once:
-            break
-        time.sleep(FLAGS.val_interval_secs)
+        finished = False
+        while not finished:
+            finished = _eval_once(saver, checkpoint_path, summary_writer, top_k_op, summary_op, val_err)
+            if FLAGS.run_once:
+                break
+            time.sleep(FLAGS.val_interval_secs)
 
 
-def _eval_once(saver, checkpoint_path, summary_writer, top_k_op, summary_op):
+def _eval_once(saver, checkpoint_path, summary_writer, top_k_op, summary_op, val_err):
     with tf.Session() as sess:
         ckpt = tf.train.get_checkpoint_state(checkpoint_path)
         if ckpt and ckpt.model_checkpoint_path:
@@ -56,10 +59,7 @@ def _eval_once(saver, checkpoint_path, summary_writer, top_k_op, summary_op):
             validation_error = 1 - accuracy
             print '%s - validation error = %.3f' % (dt.now(), validation_error)
 
-            # FIXME summary writing b0rken
-            summary = tf.Summary()
-            summary.ParseFromString(sess.run(summary_op))
-            summary.value.add('validation_error_raw', simple_value=validation_error)
+            summary = sess.run(summary_op, feed_dict={val_err: validation_error})
             summary_writer.add_summary(summary, global_step)
 
         except Exception as e:  # pylint: disable=broad-except
