@@ -9,7 +9,7 @@ class Model(object):
         self._supported_datasets = supported_datasets
 
     def supports_dataset(self, dataset):
-        return dataset in self._supported_datasets
+        return dataset.name in self._supported_datasets
 
     @property
     def name(self):

@@ -14,7 +14,7 @@ class Cifar10(Dataset):
     _NUM_VALIDATION_IMAGES = 10000
 
     def __init__(self):
-        super(Cifar10, self).__init__(10)
+        super(Cifar10, self).__init__('cifar10', 10)
         self._color_data = None
 
     def pre_graph(self):

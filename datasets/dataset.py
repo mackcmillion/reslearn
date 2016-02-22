@@ -4,8 +4,9 @@ from abc import ABCMeta, abstractmethod
 class Dataset(object):
     __metaclass__ = ABCMeta
 
-    def __init__(self, num_classes):
+    def __init__(self, name, num_classes):
         self._num_classes = num_classes
+        self._name = name
 
     @abstractmethod
     def pre_graph(self):
@@ -22,6 +23,10 @@ class Dataset(object):
     @abstractmethod
     def evaluation_inputs(self):
         pass
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def num_classes(self):

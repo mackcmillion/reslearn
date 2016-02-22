@@ -13,7 +13,7 @@ class ImageNet(Dataset):
 
     def __init__(self):
         # FIXME extend to original 1000 classes of ImageNet
-        super(ImageNet, self).__init__(2)
+        super(ImageNet, self).__init__('imagenet', 2)
         self._color_data = None
 
     def pre_graph(self):

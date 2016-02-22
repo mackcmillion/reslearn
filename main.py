@@ -19,9 +19,15 @@ DATASET_DICT = {'cifar10': Cifar10, 'imagenet': ImageNet}
 def main(argv=None):  # pylint: disable=unused-argument
 
     if FLAGS.model not in MODEL_DICT:
-        raise ValueError('Unknown model.')
+        raise ValueError('%s - Unknown model.' % dt.now())
     if FLAGS.dataset not in DATASET_DICT:
-        raise ValueError('Unknown dataset')
+        raise ValueError('%s - Unknown dataset' % dt.now())
+
+    dataset = DATASET_DICT[FLAGS.dataset]()
+    model = MODEL_DICT[FLAGS.model]()
+
+    if not model.supports_dataset(dataset):
+        raise ValueError('%s - %s does not support %s.' % (dt.now(), model.name, dataset.name))
 
     if not gfile.Exists(FLAGS.checkpoint_path):
         gfile.MkDir(FLAGS.checkpoint_path)
@@ -36,9 +42,6 @@ def main(argv=None):  # pylint: disable=unused-argument
     checkpoint_path = os.path.join(FLAGS.checkpoint_path, exp_dirname)
     gfile.MkDir(summary_path)
     gfile.MkDir(checkpoint_path)
-
-    dataset = DATASET_DICT[FLAGS.dataset]()
-    model = MODEL_DICT[FLAGS.model]()
 
     dataset.pre_graph()
 
