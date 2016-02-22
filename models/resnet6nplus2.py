@@ -30,7 +30,7 @@ class ResNet6nplus2(ResidualModel):
         (builder
          .add_layer(PoolingLayer('avg_pool', 64, tf.nn.avg_pool, filter_size=3, stride=1))
          # this last layer has no softmax since training and evaluation handle softmax internally
-         .add_layer(FullyConnectedLayer('fc', 8 * 8 * 512, num_classes))
+         .add_layer(FullyConnectedLayer('fc', 8 * 8 * 64, num_classes))
          )
 
         return builder.build()

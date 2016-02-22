@@ -126,7 +126,7 @@ def _add_train_err_summaries(training_err):
 
 def training_op(total_loss, train_err, global_step):
     # TODO add correct learning rate decay
-    lr = tf.train.exponential_decay(0.01, global_step, 100, 0.1, staircase=True)
+    lr = tf.train.exponential_decay(0.1, global_step, 100, 0.1, staircase=True)
     tf.scalar_summary('learning_rate', lr)
 
     loss_averages_op = _add_loss_summaries(total_loss)

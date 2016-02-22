@@ -2,15 +2,15 @@ import tensorflow as tf
 from tensorflow.python.platform import gfile
 
 import util
-from datasets.dataset import Dataset
 from config import FLAGS
-from preprocess import preprocess_for_training
+from datasets.dataset import Dataset
+from preprocess import resize_random, random_crop_to_square, random_flip, color_noise, \
+    normalize_colors, ten_crop
 from scripts.labelmap import create_label_map_file
 from scripts.meanstddev import compute_overall_mean_stddev
 
 
 class ImageNet(Dataset):
-
     def __init__(self):
         # FIXME extend to original 1000 classes of ImageNet
         super(ImageNet, self).__init__('imagenet', 2)
@@ -77,9 +77,23 @@ class ImageNet(Dataset):
         # prepare image
         image = tf.image.decode_jpeg(image, channels=3)
         feature_img = tf.cast(image, tf.float32)
-        processed_img = preprocess_for_training(feature_img, *self._color_data)
+        processed_img = self._preprocess_for_training(feature_img)
 
         return [processed_img, label]
 
+    def _preprocess_for_training(self, image):
+        image = resize_random(image, 256, 480)
+        # swapped cropping and flipping because flip needs image shape to be fully defined - should not make a
+        # difference
+        image = random_crop_to_square(image, 224)
+        image = random_flip(image)
+        image = color_noise(image, *self._color_data[2:])
+        return normalize_colors(image, *self._color_data[:2])
+
     def evaluation_inputs(self):
+        # TODO implement
         pass
+
+    def _preprocess_for_evaluation(self, image):
+        image = normalize_colors(image, *self._color_data[2:])
+        return ten_crop(image)

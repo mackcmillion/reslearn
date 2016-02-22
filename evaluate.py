@@ -2,6 +2,7 @@
 # https://tensorflow.googlesource.com/tensorflow/+/master/tensorflow/models/image/cifar10/cifar10_eval.py
 import time
 
+import math
 import tensorflow as tf
 from datetime import datetime as dt
 
@@ -13,7 +14,7 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
         # input and evaluation procedure
         images, true_labels = dataset.evaluation_inputs()
         predictions = model.inference(images, dataset.num_classes)
-        top_k_op = _top_k_10crop(predictions, true_labels)
+        top_k_op = _in_top_k(predictions, true_labels)
 
         saver = tf.train.Saver(tf.trainable_variables())
 
@@ -27,7 +28,8 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
         summary_writer = tf.train.SummaryWriter(summary_path, tf.get_default_graph().as_graph_def())
 
         while True:
-            finished = _eval_once(saver, read_checkpoint_path, summary_writer, top_k_op, summary_op, test_err)
+            finished = _eval_once(saver, read_checkpoint_path, summary_writer,
+                                                   top_k_op, summary_op, test_err)
             if FLAGS.run_once or finished:
                 break
             time.sleep(FLAGS.eval_interval_secs)
@@ -48,17 +50,16 @@ def _eval_once(saver, read_checkpoint_path, summary_writer, top_k_op, summary_op
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
         try:
+            num_iter = int(math.ceil(FLAGS.max_num_examples) / FLAGS.batch_size)
             true_count = 0
+            total_sample_count = num_iter * FLAGS.batch_size
             step = 0
-            while step < FLAGS.max_num_examples and not coord.should_stop():
-                # TODO this is so damn slow since we're not processing batches
-                prediction = sess.run([top_k_op])
-                print prediction
-                if prediction[0]:
-                    true_count += 1
+            while step < num_iter and not coord.should_stop():
+                predictions = sess.run(top_k_op)
+                true_count += sess.run(tf.reduce_sum(tf.cast(predictions, tf.int32)))
                 step += 1
 
-            accuracy = true_count / step
+            accuracy = true_count / total_sample_count
             test_error = 1 - accuracy
             print '%s - test error = %.3f' % (dt.now(), test_error)
 
@@ -73,6 +74,11 @@ def _eval_once(saver, read_checkpoint_path, summary_writer, top_k_op, summary_op
 
         # the last checkpoint is always the one with the total number of training epochs as step
         return global_step == FLAGS.training_epochs
+
+
+def _in_top_k(predictions, true_labels):
+    predictions = tf.nn.softmax(predictions, name='eval_softmax')
+    return tf.nn.in_top_k(predictions, true_labels, FLAGS.top_k)
 
 
 def _top_k_10crop(predictions, true_labels):

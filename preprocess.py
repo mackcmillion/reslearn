@@ -30,6 +30,10 @@ def _resize_aux(image, new_shorter_edge_tensor):
     return tf.squeeze(image, [0])
 
 
+def _compute_longer_edge(shorter, longer, new_shorter):
+    return (longer * new_shorter) / shorter
+
+
 def random_flip(image):
     return tf.image.random_flip_left_right(image)
 
@@ -38,8 +42,13 @@ def random_crop_to_square(image, size):
     return tf.random_crop(image, [size, size, 3])
 
 
-def _compute_longer_edge(shorter, longer, new_shorter):
-    return (longer * new_shorter) / shorter
+def evenly_pad_zeros(image, num):
+    img_shape = image.get_shape().as_list()
+    height = img_shape[0]
+    width = img_shape[1]
+    new_height = height + 2 * num
+    new_width = width + 2 * num
+    return tf.image.resize_image_with_crop_or_pad(image, new_height, new_width)
 
 
 def color_noise(image, eigvals, eigvecs):
@@ -71,16 +80,6 @@ def _replicate_to_image_shape(image, t):
     return t
 
 
-def preprocess_for_training(image, mean, stddev, eigvals, eigvecs):
-    image = resize_random(image, 256, 480)
-    # swapped cropping and flipping because flip needs image shape to be fully defined - should not make a difference
-    image = random_crop_to_square(image, 224)
-    image = random_flip(image)
-    image = color_noise(image, eigvals, eigvecs)
-    image = normalize_colors(image, mean, stddev)
-    return image
-
-
 def ten_crop(image):
     image = resize(image, 256)
 
@@ -102,8 +101,3 @@ def _extract_5crop(image):
     return tf.image.extract_glimpse(tiled, [224, 224],
                                     [[0.0, 0.0], [-1.0, -1.0], [-1.0, 1.0], [1.0, -1.0], [1.0, 1.0]],
                                     centered=True, normalized=True)
-
-
-def preprocess_for_evaluation(image, mean, stddev):
-    image = normalize_colors(image, mean, stddev)
-    return ten_crop(image)

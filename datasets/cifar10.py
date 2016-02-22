@@ -5,7 +5,7 @@ import tensorflow as tf
 import util
 from datasets.dataset import Dataset
 from config import FLAGS
-from preprocess import preprocess_for_training, preprocess_for_evaluation
+from preprocess import evenly_pad_zeros, random_flip, random_crop_to_square, normalize_colors
 from scripts.meanstddev import compute_overall_mean_stddev
 
 
@@ -25,13 +25,22 @@ class Cifar10(Dataset):
         pass
 
     def training_inputs(self):
+        return self._inputs(True)
+
+    def evaluation_inputs(self):
+        return self._inputs(False)
+
+    def _inputs(self, is_training):
         filenames = [os.path.join(FLAGS.cifar10_image_path, 'data_batch_%i.bin' % i) for i in xrange(1, 6)]
-        filename_queue = tf.train.string_input_producer(filenames, name='training_filename_queue')
+        filename_queue = tf.train.string_input_producer(filenames, name='%s_filename_queue' %
+                                                                        'training' if is_training else 'evaluation')
 
         image, label = self._read_image(filename_queue)
 
-        # TODO implement correct image preprocessing for CIFAR-10
-        image = preprocess_for_training(image, *self._color_data)
+        if is_training:
+            image = self._preprocess_for_training(image)
+        else:
+            image = self._preprocess_for_evaluation(image)
 
         min_num_examples_in_queue = int(FLAGS.min_frac_examples_in_queue * self._NUM_TRAINING_IMAGES)
         image_batch, label_batch = tf.train.shuffle_batch(
@@ -40,37 +49,23 @@ class Cifar10(Dataset):
                 num_threads=FLAGS.num_consuming_threads,
                 capacity=min_num_examples_in_queue + (FLAGS.num_consuming_threads + 2) * FLAGS.batch_size,
                 min_after_dequeue=min_num_examples_in_queue,
-                shapes=[[224, 224, 3], []],
-                name='training_example_queue'
+                shapes=[[32, 32, 3], []],
+                name='%s_example_queue' % 'training' if is_training else 'evaluation'
         )
-        return image_batch, util.encode_one_hot(label_batch, self.num_classes)
 
-    def evaluation_inputs(self, validation_data=True):
-        if validation_data:
-            filenames = [os.path.join(FLAGS.cifar10_image_path, 'data_batch_%i.bin' % i) for i in xrange(1, 6)]
-            num_images = self._NUM_VALIDATION_IMAGES
-        else:
-            filenames = [os.path.join(FLAGS.cifar10_image_path, 'test_batch.bin')]
-            num_images = self._NUM_TRAINING_IMAGES
+        if is_training:
+            label_batch = util.encode_one_hot(label_batch, self.num_classes)
+        return image_batch, label_batch
 
-        filename_queue = tf.train.string_input_producer(filenames, name='validation_filename_queue')
+    def _preprocess_for_training(self, image):
+        image = evenly_pad_zeros(image, 4)
+        image = random_flip(image)
+        image = random_crop_to_square(image, 32)
+        image = normalize_colors(image, *self._color_data[:2])
+        return image
 
-        image, label = self._read_image(filename_queue)
-
-        # TODO implement correct image preprocessing for CIFAR-10
-        image = preprocess_for_evaluation(image, *self._color_data[:2])
-
-        min_num_examples_in_queue = int(FLAGS.min_frac_examples_in_queue * num_images)
-
-        example_queue = tf.RandomShuffleQueue(num_images, min_num_examples_in_queue,
-                                              dtypes=[tf.float32, tf.int32], shapes=[image.get_shape(), []],
-                                              name='validation_filename_queue')
-        enqueue_op = example_queue.enqueue([image, label])
-        qr = tf.train.QueueRunner(example_queue, [enqueue_op])
-        tf.train.add_queue_runner(qr)
-
-        image_10crop, label = example_queue.dequeue()
-        return image_10crop, label
+    def _preprocess_for_evaluation(self, image):
+        return normalize_colors(image, *self._color_data[:2])
 
     @staticmethod
     def _read_image(filename_queue):
@@ -94,5 +89,4 @@ class Cifar10(Dataset):
                                  [depth, height, width])
         uint8image = tf.transpose(depth_major, [1, 2, 0])
         image = tf.cast(uint8image, tf.float32)
-
         return image, tf.squeeze(label)
