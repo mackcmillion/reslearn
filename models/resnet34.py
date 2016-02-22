@@ -2,19 +2,13 @@ import tensorflow as tf
 
 from architecture.building_blocks import add_n_conv3x3_blocks
 from architecture.layers import NetworkBuilder, ConvLayer, PoolingLayer, InputLayer, FullyConnectedLayer
-from config import FLAGS
-from model import Model
+from model import ResidualModel
 
 
-class ResNet34(Model):
+class ResNet34(ResidualModel):
 
     def __init__(self):
         super(ResNet34, self).__init__('resnet-34', ['imagenet'])
-        assert FLAGS.adjust_dimensions_strategy in ['A', 'B']
-        if FLAGS.adjust_dimensions_strategy == 'A':
-            self._adjust_dimensions = 'IDENTITY'
-        else:
-            self._adjust_dimensions = 'PROJECTION'
 
     def inference(self, x, num_classes):
         builder = NetworkBuilder()

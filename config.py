@@ -7,7 +7,7 @@ tf.app.flags.DEFINE_string('experiment_name', 'resnet_34_test',
 tf.app.flags.DEFINE_string('dataset', 'cifar10',
                            """The dataset which to train on.""")
 
-tf.app.flags.DEFINE_string('model', 'resnet-34',
+tf.app.flags.DEFINE_string('model', 'cifar10-resnet-20',
                            """The name of the net to train.""")
 
 tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
