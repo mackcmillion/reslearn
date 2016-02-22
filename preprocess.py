@@ -43,6 +43,9 @@ def _compute_longer_edge(shorter, longer, new_shorter):
 
 
 def color_noise(image, eigvals, eigvecs):
+    eigvals = tf.constant(eigvals, dtype=tf.float32)
+    eigvecs = tf.constant(eigvecs, dtype=tf.float32, shape=[3, 3])
+
     alpha = tf.random_normal([3], 0.0, 0.1, dtype=tf.float32)
     q = tf.matmul(eigvecs, tf.expand_dims(alpha * eigvals, 1))
     q = tf.squeeze(q)
@@ -51,6 +54,9 @@ def color_noise(image, eigvals, eigvecs):
 
 
 def normalize_colors(image, mean, stddev):
+    mean = tf.constant(mean, dtype=tf.float32)
+    stddev = tf.constant(stddev, dtype=tf.float32)
+
     mean = _replicate_to_image_shape(image, mean)
     stddev = _replicate_to_image_shape(image, stddev)
 
@@ -77,8 +83,12 @@ def preprocess_for_training(image, mean, stddev, eigvals, eigvecs):
 
 def ten_crop(image):
     image = resize(image, 256)
-    image = tf.image.resize_image_with_crop_or_pad(image, 256, 256)
-    flipped_image = tf.image.flip_left_right(image)
+
+    # workaround for getting the center square crop of an image with not fully defined shape
+    image = tf.expand_dims(image, 0)
+    image = tf.image.extract_glimpse(image, [256, 256], [[0.0, 0.0]], centered=True, normalized=True)
+    flipped_image = tf.image.flip_left_right(tf.squeeze(image))
+    flipped_image = tf.expand_dims(flipped_image, 0)
 
     crops = _extract_5crop(image)
     flipped_crops = _extract_5crop(flipped_image)
@@ -86,11 +96,14 @@ def ten_crop(image):
 
 
 def _extract_5crop(image):
-    return tf.image.extract_glimpse(image, [224, 224],
+    if image.get_shape().ndims < 4:
+        image = tf.expand_dims(image, 0)
+    tiled = tf.tile(image, [5, 1, 1, 1])
+    return tf.image.extract_glimpse(tiled, [224, 224],
                                     [[0.0, 0.0], [-1.0, -1.0], [-1.0, 1.0], [1.0, -1.0], [1.0, 1.0]],
                                     centered=True, normalized=True)
 
 
-def preprocess_for_validation(image):
-    # TODO should one normalize here?
+def preprocess_for_validation(image, mean, stddev):
+    image = normalize_colors(image, mean, stddev)
     return ten_crop(image)

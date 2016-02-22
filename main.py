@@ -1,4 +1,5 @@
 import os
+import threading
 
 import tensorflow as tf
 from datetime import datetime as dt
@@ -29,7 +30,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     now = dt.now()
     exp_dirname = FLAGS.experiment_name + ('_%s' % now.strftime('%Y-%m-%d_%H-%M-%S'))
-    exp_dirname_val = exp_dirname + 'validation'
+    exp_dirname_val = exp_dirname + '_validation'
     summary_path = os.path.join(FLAGS.summary_path, exp_dirname)
     summary_path_val = os.path.join(FLAGS.summary_path, exp_dirname_val)
     checkpoint_path = os.path.join(FLAGS.checkpoint_path, exp_dirname)
@@ -39,9 +40,20 @@ def main(argv=None):  # pylint: disable=unused-argument
     dataset = DATASET_DICT[FLAGS.dataset]()
     model = MODEL_DICT[FLAGS.model]()
 
-    train(dataset, model, summary_path, checkpoint_path)
-    validate(dataset, model, summary_path_val, checkpoint_path)
+    dataset.pre_graph()
 
+    training_thread = threading.Thread(target=train, args=(dataset, model, summary_path, checkpoint_path),
+                                       name='training-thread')
+    validation_thread = threading.Thread(target=validate, args=(dataset, model, summary_path_val, checkpoint_path),
+                                         name='validation-thread')
+
+    training_thread.start()
+    validation_thread.start()
+
+    training_thread.join()
+    validation_thread.join()
+
+    print 'Finished %s.' % FLAGS.experiment_name
 
 if __name__ == '__main__':
     tf.app.run()

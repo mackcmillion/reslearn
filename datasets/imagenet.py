@@ -18,10 +18,10 @@ class ImageNet(Dataset):
 
     def pre_graph(self):
         compute_overall_mean_stddev(overwrite=False, num_threads=FLAGS.num_consuming_threads, num_logs=10)
+        self._color_data = util.load_meanstddev(FLAGS.mean_stddev_path)
 
     def preliminary(self):
         create_label_map_file(overwrite=False)
-        self._color_data = util.load_meanstddev(FLAGS.mean_stddev_path)
 
     def training_inputs(self):
         fps, labels = self._load_training_labelmap()

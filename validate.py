@@ -33,7 +33,8 @@ def _eval_once(saver, checkpoint_path, summary_writer, top_k_op, summary_op):
         ckpt = tf.train.get_checkpoint_state(checkpoint_path)
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(sess, ckpt.model_checkpoint_path)
-            global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
+            global_step = int(ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1])
+            print '%s - Found new checkpoint file from step %i.' % (dt.now(), global_step)
         else:
             print '%s - No new checkpoint file found.' % dt.now()
             return False
@@ -44,14 +45,18 @@ def _eval_once(saver, checkpoint_path, summary_writer, top_k_op, summary_op):
             true_count = 0
             step = 0
             while step < FLAGS.max_num_examples and not coord.should_stop():
+                # TODO this is so damn slow since we're not processing batches
                 prediction = sess.run([top_k_op])
-                true_count += prediction
+                print prediction
+                if prediction[0]:
+                    true_count += 1
                 step += 1
 
             accuracy = true_count / step
             validation_error = 1 - accuracy
             print '%s - validation error = %.3f' % (dt.now(), validation_error)
 
+            # FIXME summary writing b0rken
             summary = tf.Summary()
             summary.ParseFromString(sess.run(summary_op))
             summary.value.add('validation_error_raw', simple_value=validation_error)
@@ -63,7 +68,11 @@ def _eval_once(saver, checkpoint_path, summary_writer, top_k_op, summary_op):
         coord.request_stop()
         coord.join(threads, stop_grace_period_secs=10)
 
+        return global_step == FLAGS.training_epochs
+
 
 def _top_k_10crop(predictions, true_labels):
     pred_mean = tf.reduce_mean(predictions, reduction_indices=0)
+    pred_mean = tf.expand_dims(pred_mean, 0)
+    true_labels = tf.expand_dims(true_labels, 0)
     return tf.nn.in_top_k(pred_mean, true_labels, FLAGS.top_k)

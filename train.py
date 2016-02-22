@@ -13,8 +13,6 @@ from util import format_time_hhmmss
 
 def train(dataset, model, summary_path, checkpoint_path):
 
-    dataset.pre_graph()
-
     sess = tf.Session(config=tf.ConfigProto(log_device_placement=False))
 
     dataset.preliminary()

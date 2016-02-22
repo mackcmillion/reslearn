@@ -5,12 +5,13 @@ import tensorflow as tf
 import util
 from datasets.dataset import Dataset
 from config import FLAGS
-from preprocess import preprocess_for_training
+from preprocess import preprocess_for_training, preprocess_for_validation
 from scripts.meanstddev import compute_overall_mean_stddev
 
 
 class Cifar10(Dataset):
     _NUM_TRAINING_IMAGES = 50000
+    _NUM_VALIDATION_IMAGES = 10000
 
     def __init__(self):
         super(Cifar10, self).__init__(10)
@@ -18,15 +19,19 @@ class Cifar10(Dataset):
 
     def pre_graph(self):
         compute_overall_mean_stddev(overwrite=False, num_threads=FLAGS.num_consuming_threads, num_logs=10)
+        self._color_data = util.load_meanstddev(FLAGS.mean_stddev_path)
 
     def preliminary(self):
-        self._color_data = util.load_meanstddev(FLAGS.mean_stddev_path)
+        pass
 
     def training_inputs(self):
         filenames = [os.path.join(FLAGS.cifar10_image_path, 'data_batch_%i.bin' % i) for i in xrange(1, 6)]
-        filename_queue = tf.train.string_input_producer(filenames, name='filename_queue')
+        filename_queue = tf.train.string_input_producer(filenames, name='training_filename_queue')
 
-        image, label = self._read_and_preprocess_image_for_training(filename_queue)
+        image, label = self._read_image(filename_queue)
+
+        # TODO implement correct image preprocessing for CIFAR-10
+        image = preprocess_for_training(image, *self._color_data)
 
         min_num_examples_in_queue = int(FLAGS.min_frac_examples_in_queue * self._NUM_TRAINING_IMAGES)
         image_batch, label_batch = tf.train.shuffle_batch(
@@ -40,7 +45,35 @@ class Cifar10(Dataset):
         )
         return image_batch, util.encode_one_hot(label_batch, self.num_classes)
 
-    def _read_and_preprocess_image_for_training(self, filename_queue):
+    def validation_inputs(self, validation_data=True):
+        if validation_data:
+            filenames = [os.path.join(FLAGS.cifar10_image_path, 'data_batch_%i.bin' % i) for i in xrange(1, 6)]
+            num_images = self._NUM_VALIDATION_IMAGES
+        else:
+            filenames = [os.path.join(FLAGS.cifar10_image_path, 'test_batch.bin')]
+            num_images = self._NUM_TRAINING_IMAGES
+
+        filename_queue = tf.train.string_input_producer(filenames, name='validation_filename_queue')
+
+        image, label = self._read_image(filename_queue)
+
+        # TODO implement correct image preprocessing for CIFAR-10
+        image = preprocess_for_validation(image, *self._color_data[:2])
+
+        min_num_examples_in_queue = int(FLAGS.min_frac_examples_in_queue * num_images)
+
+        example_queue = tf.RandomShuffleQueue(num_images, min_num_examples_in_queue,
+                                              dtypes=[tf.float32, tf.int32], shapes=[image.get_shape(), []],
+                                              name='validation_filename_queue')
+        enqueue_op = example_queue.enqueue([image, label])
+        qr = tf.train.QueueRunner(example_queue, [enqueue_op])
+        tf.train.add_queue_runner(qr)
+
+        image_10crop, label = example_queue.dequeue()
+        return image_10crop, label
+
+    @staticmethod
+    def _read_image(filename_queue):
         # copied from
         # https://tensorflow.googlesource.com/tensorflow/+/master/tensorflow/models/image/cifar10/cifar10_input.py
 
@@ -62,9 +95,4 @@ class Cifar10(Dataset):
         uint8image = tf.transpose(depth_major, [1, 2, 0])
         image = tf.cast(uint8image, tf.float32)
 
-        # TODO implement correct image preprocessing for CIFAR-10
-        image = preprocess_for_training(image, *self._color_data)
         return image, tf.squeeze(label)
-
-    def validation_inputs(self):
-        pass

@@ -64,12 +64,11 @@ def load_meanstddev(path):
     eigval_str = mean_stddev_string[2][1:-1].split(',')
     eigvecs_str = mean_stddev_string[3][1:-1].split(' ')
 
-    mean = tf.constant([float(mean_str[0]), float(mean_str[1]), float(mean_str[2])], dtype=tf.float32)
-    stddev = tf.constant([float(stddev_str[0]), float(stddev_str[1]), float(stddev_str[2])], dtype=tf.float32)
-    eigvals = tf.constant([float(eigval_str[0]), float(eigval_str[1]), float(eigval_str[2])], dtype=tf.float32)
+    mean = [float(mean_str[0]), float(mean_str[1]), float(mean_str[2])]
+    stddev = [float(stddev_str[0]), float(stddev_str[1]), float(stddev_str[2])]
+    eigvals = [float(eigval_str[0]), float(eigval_str[1]), float(eigval_str[2])]
     eigvecs = []
     for eigvec_str in eigvecs_str:
         eigvec = eigvec_str[1:-1].split(',')
         eigvecs.append([float(eigvec[0]), float(eigvec[1]), float(eigvec[2])])
-    eigvecs = tf.constant(eigvecs, dtype=tf.float32, shape=[3, 3])
     return mean, stddev, eigvals, eigvecs
