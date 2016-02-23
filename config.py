@@ -28,7 +28,7 @@ OPTIMIZER_ARGS = {'momentum': 0.9}
 tf.app.flags.DEFINE_float('weight_decay', 0.0001,
                           """The constant float L2 weight decay loss is multiplied with.""")
 
-tf.app.flags.DEFINE_integer('training_epochs', 20,
+tf.app.flags.DEFINE_integer('training_steps', 20,
                             """Number of iterations for training.""")
 
 tf.app.flags.DEFINE_integer('batch_size', 10,

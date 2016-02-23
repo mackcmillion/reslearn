@@ -35,7 +35,7 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
         last = None
         while True:
             last = _eval_once(last, saver, read_checkpoint_path, summary_writer, top_k_op, summary_op, test_err)
-            if FLAGS.run_once or last == FLAGS.training_epochs:
+            if FLAGS.run_once or last == FLAGS.training_steps:
                 break
             time.sleep(FLAGS.eval_interval_secs)
 

@@ -38,7 +38,7 @@ with tf.name_scope('summaries'):
 writer = tf.train.SummaryWriter('summaries/mnist_conv_arch', sess.graph_def)
 
 sess.run(tf.initialize_all_variables())
-for i in xrange(FLAGS.training_epochs):
+for i in xrange(FLAGS.training_steps):
     batch = mnist.train.next_batch(50)
     feed = {x: batch[0], y_: batch[1]}
     sess.run(train_step, feed_dict=feed)

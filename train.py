@@ -53,7 +53,6 @@ def train(dataset, model, summary_path, checkpoint_path):
 
         step = sess.run(global_step)
         # print timing information
-        # TODO make module bigger
         if step % FLAGS.log_interval == 0:
             examples_per_step = FLAGS.batch_size
             examples_per_sec = examples_per_step / duration
@@ -62,20 +61,19 @@ def train(dataset, model, summary_path, checkpoint_path):
                 dt.now(), step, loss_value, train_err_value * 100, examples_per_sec, sec_per_batch)
 
         # add summaries
-        # TODO make module bigger
         if step % FLAGS.summary_interval == 0:
             summary = sess.run(summary_op)
             summary_writer.add_summary(summary, step)
 
         # periodically save progress
-        if step % FLAGS.checkpoint_interval == 0 or step == FLAGS.training_epochs:
+        if step % FLAGS.checkpoint_interval == 0 or step == FLAGS.training_steps:
             saver.save(sess, os.path.join(checkpoint_path, model.name + '.ckpt'), global_step=step)
 
-        # reached epoch limit - done with training
-        if step == FLAGS.training_epochs:
+        # reached step limit - done with training
+        if step == FLAGS.training_steps:
             coord.request_stop()
             overall_duration = time.time() - overall_start_time
-            print '%s - Epoch limit reached. Done training in %s.' % (
+            print '%s - Step limit reached. Done training in %s.' % (
                 dt.now(), format_time_hhmmss(overall_duration))
             break
 
