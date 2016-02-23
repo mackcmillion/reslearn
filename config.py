@@ -28,13 +28,13 @@ OPTIMIZER_ARGS = {'momentum': 0.9}
 tf.app.flags.DEFINE_float('weight_decay', 0.0001,
                           """The constant float L2 weight decay loss is multiplied with.""")
 
-tf.app.flags.DEFINE_integer('training_steps', 20,
+tf.app.flags.DEFINE_integer('training_steps', 100,
                             """Number of iterations for training.""")
 
-tf.app.flags.DEFINE_integer('batch_size', 10,
+tf.app.flags.DEFINE_integer('batch_size', 128,
                             """Size of the mini-batches used for training.""")
 
-tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.01,
+tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.4,
                           """The minimum fraction of all examples to be held in the input queue.
                           Ensures good shuffling.""")
 
@@ -48,13 +48,13 @@ tf.app.flags.DEFINE_integer('log_interval', 1,
 tf.app.flags.DEFINE_integer('summary_interval', 1,
                             """The number of steps after which to create a new summary.""")
 
-tf.app.flags.DEFINE_integer('checkpoint_interval', 3,
+tf.app.flags.DEFINE_integer('checkpoint_interval', 10,
                             """The number of steps after which to create a new checkpoint.""")
 
 tf.app.flags.DEFINE_integer('eval_interval_secs', 10,
                             """Interval seconds in which to poll the checkpoint directory for new checkpoint files.""")
 
-tf.app.flags.DEFINE_integer('max_num_examples', 300,
+tf.app.flags.DEFINE_integer('max_num_examples', 1000,
                             """Maximum number of examples to process in one evaluation run.""")
 
 tf.app.flags.DEFINE_boolean('run_once', False,

@@ -104,6 +104,8 @@ def _has_new_checkpoint(path, last):
                 continue
             if global_step and global_step > last:
                 new_files[global_step] = f
+    if new_files == {}:
+        return last
     return new_files[min(new_files)]
 
 
