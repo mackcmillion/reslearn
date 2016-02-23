@@ -59,7 +59,7 @@ def main(argv=None):  # pylint: disable=unused-argument
                                        name='training-thread')
     evaluation_thread = threading.Thread(target=evaluate,
                                          args=(dataset, model, summary_path_eval, checkpoint_path),
-                                         name='validation-thread')
+                                         name='evaluation-thread')
 
     training_thread.start()
     evaluation_thread.start()

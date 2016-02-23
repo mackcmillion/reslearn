@@ -1,10 +1,15 @@
 # most of this code is taken from
 # https://tensorflow.googlesource.com/tensorflow/+/master/tensorflow/models/image/cifar10/cifar10_eval.py
+import os
+
+import numpy
 import time
 
 import math
 import tensorflow as tf
 from datetime import datetime as dt
+
+from tensorflow.python.platform import gfile
 
 from config import FLAGS
 
@@ -27,28 +32,29 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
         summary_op = tf.merge_all_summaries()
         summary_writer = tf.train.SummaryWriter(summary_path, tf.get_default_graph().as_graph_def())
 
+        last = None
         while True:
-            finished = _eval_once(saver, read_checkpoint_path, summary_writer,
-                                                   top_k_op, summary_op, test_err)
-            if FLAGS.run_once or finished:
+            last = _eval_once(last, saver, read_checkpoint_path, summary_writer, top_k_op, summary_op, test_err)
+            if FLAGS.run_once or last == FLAGS.training_epochs:
                 break
             time.sleep(FLAGS.eval_interval_secs)
 
 
-def _eval_once(saver, read_checkpoint_path, summary_writer, top_k_op, summary_op, test_err):
+def _eval_once(last, saver, read_checkpoint_path, summary_writer, top_k_op, summary_op, test_err):
     with tf.Session() as sess:
         # restore training progress
-        ckpt = tf.train.get_checkpoint_state(read_checkpoint_path)
-        if ckpt and ckpt.model_checkpoint_path:
-            saver.restore(sess, ckpt.model_checkpoint_path)
-            global_step = int(ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1])
+        ckpt = _has_new_checkpoint(read_checkpoint_path, last)
+        if ckpt:
+            saver.restore(sess, os.path.join(read_checkpoint_path, ckpt))
+            global_step = _extract_global_step(ckpt)
             print '%s - Found new checkpoint file from step %i.' % (dt.now(), global_step)
         else:
             print '%s - No new checkpoint file found.' % dt.now()
-            return False
+            return last if last else None
 
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+        print '%s - Started computing test error for step %i.' % (dt.now(), global_step)
         try:
             num_iter = int(math.ceil(FLAGS.max_num_examples) / FLAGS.batch_size)
             true_count = 0
@@ -56,12 +62,12 @@ def _eval_once(saver, read_checkpoint_path, summary_writer, top_k_op, summary_op
             step = 0
             while step < num_iter and not coord.should_stop():
                 predictions = sess.run(top_k_op)
-                true_count += sess.run(tf.reduce_sum(tf.cast(predictions, tf.int32)))
+                true_count += numpy.sum(predictions)
                 step += 1
 
             accuracy = true_count / total_sample_count
             test_error = 1 - accuracy
-            print '%s - test error = %.3f' % (dt.now(), test_error)
+            print '%s - step %i: test error = %.2f%%' % (dt.now(), global_step, test_error * 100)
 
             summary = sess.run(summary_op, feed_dict={test_err: test_error})
             summary_writer.add_summary(summary, global_step)
@@ -72,8 +78,33 @@ def _eval_once(saver, read_checkpoint_path, summary_writer, top_k_op, summary_op
         coord.request_stop()
         coord.join(threads, stop_grace_period_secs=10)
 
-        # the last checkpoint is always the one with the total number of training epochs as step
-        return global_step == FLAGS.training_epochs
+        # return the current global step to track the progress
+        return global_step
+
+
+def _extract_global_step(path):
+    return int(path.split('/')[-1].split('-')[-1])
+
+
+# since tf.train.get_checkpoint_state always returns the latest checkpoint file, but we only want to run the script
+# when a new checkpoint is available
+def _has_new_checkpoint(path, last):
+    if not last:
+        ckpt = tf.train.get_checkpoint_state(path)
+        if not ckpt:
+            return None
+        return ckpt.model_checkpoint_path
+
+    new_files = {}
+    for f in gfile.ListDirectory(path):
+        if not gfile.IsDirectory(f):
+            try:
+                global_step = _extract_global_step(f)
+            except Exception:  # pylint: disable=broad-except
+                continue
+            if global_step and global_step > last:
+                new_files[global_step] = f
+    return new_files[min(new_files)]
 
 
 def _in_top_k(predictions, true_labels):

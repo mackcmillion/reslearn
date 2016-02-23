@@ -10,6 +10,7 @@ from scripts.labelmap import build_filename_list
 def compute_overall_mean_stddev(overwrite=False, num_threads=1, num_logs=10):
     if FLAGS.dataset == 'cifar10':
         # TODO implement for test set
+        # TODO implement relative color values (divide by 256)
         _compute_overall_mean_stddev(overwrite, num_threads, num_logs,
                                      image_op=_image_op_cifar10,
                                      filenames=[os.path.join(FLAGS.cifar10_image_path, 'data_batch_%i.bin' % i) for i in
