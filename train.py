@@ -7,6 +7,7 @@ from datetime import datetime as dt
 
 import tensorflow as tf
 
+import learningrate
 from config import OPTIMIZER, FLAGS, OPTIMIZER_ARGS
 from util import format_time_hhmmss
 
@@ -123,14 +124,19 @@ def _add_train_err_summaries(training_err):
 
 
 def training_op(total_loss, train_err, global_step):
-    # TODO add correct learning rate decay
-    lr = tf.train.exponential_decay(0.1, global_step, 100, 0.1, staircase=True)
+
+    lr = tf.Variable(0.1)
+    lr_decay_op = lr.assign(
+            [
+                learningrate.decay_at_fixed_steps_default(lr, global_step)
+            ][FLAGS.learning_rate_decay_strategy]
+    )
     tf.scalar_summary('learning_rate', lr)
 
     loss_averages_op = _add_loss_summaries(total_loss)
     train_err_avg_op = _add_train_err_summaries(train_err)
 
-    with tf.control_dependencies([loss_averages_op, train_err_avg_op]):
+    with tf.control_dependencies([loss_averages_op, train_err_avg_op, lr_decay_op]):
         optimizer = OPTIMIZER(lr, **OPTIMIZER_ARGS)
         grads = optimizer.compute_gradients(total_loss)
 
