@@ -24,8 +24,9 @@ def train(dataset, model, summary_path, checkpoint_path):
     images, true_labels = dataset.training_inputs()
     predictions = model.inference(images, dataset.num_classes)
     loss_op = loss(predictions, true_labels)
-    train_err_op = training_error(predictions, true_labels)
-    train_op = training_op(loss_op, train_err_op, global_step)
+    train_err = tf.Variable(1.0, trainable=False)
+    train_err_assign = training_error(predictions, true_labels, train_err)
+    train_op = training_op(loss_op, train_err, train_err_assign, global_step)
 
     saver = tf.train.Saver(tf.all_variables())
 
@@ -47,7 +48,7 @@ def train(dataset, model, summary_path, checkpoint_path):
 
         # measure computation time of the costly operations
         start_time = time.time()
-        _, loss_value, train_err_value = sess.run([train_op, loss_op, train_err_op])
+        _, loss_value = sess.run([train_op, loss_op])
         duration = time.time() - start_time
 
         assert not math.isnan(loss_value), '%s - Model diverged with loss = NaN.' % dt.now()
@@ -59,7 +60,7 @@ def train(dataset, model, summary_path, checkpoint_path):
             examples_per_sec = examples_per_step / duration
             sec_per_batch = float(duration)
             print '%s - step %d, loss = %.2f, training error = %.2f%% (%.1f examples/sec; %.3f sec/batch)' % (
-                dt.now(), step, loss_value, train_err_value * 100, examples_per_sec, sec_per_batch)
+                dt.now(), step, loss_value, sess.run(train_err) * 100, examples_per_sec, sec_per_batch)
 
         # add summaries
         if step % FLAGS.summary_interval == 0:
@@ -101,44 +102,50 @@ def _add_loss_summaries(total_loss):
 
     for l in losses + [total_loss]:
         tf.scalar_summary(l.op.name + '_raw', l)
-        tf.scalar_summary(l.op.name, loss_averages.average(l))
+        tf.scalar_summary(l.op.name + '_averaged', loss_averages.average(l))
 
     return loss_averages_op
 
 
-def training_error(predictions, true_labels):
+def training_error(predictions, true_labels, train_err):
     softmaxed = tf.nn.softmax(predictions)
     correct_prediction = tf.equal(tf.argmax(softmaxed, 1), tf.argmax(true_labels, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    training_err = 1 - accuracy
-    return training_err
+    train_err_op = 1 - accuracy
+
+    train_err_assign = train_err.assign(train_err_op)
+    return train_err_assign
 
 
-def _add_train_err_summaries(training_err):
-    train_err_avg = tf.train.ExponentialMovingAverage(0.9, name='train_err_avg')
-    train_err_avg_op = train_err_avg.apply([training_err])
-    tf.scalar_summary('training_error_raw', training_err)
-    tf.scalar_summary('training_error_averaged', train_err_avg.average(training_err))
+def _add_train_err_summaries(train_err):
+    train_err_avg_obj = tf.train.ExponentialMovingAverage(0.9, name='train_err_avg')
+    train_err_avg_op = train_err_avg_obj.apply([train_err])
 
-    return train_err_avg_op
+    tf.scalar_summary('training_error_raw', train_err)
+    averaged = train_err_avg_obj.average(train_err)
+    tf.scalar_summary('training_error_averaged', averaged)
+
+    return train_err_avg_op, averaged
 
 
-def training_op(total_loss, train_err, global_step):
-
-    lr = tf.Variable(0.1)
-    lr_decay_op = lr.assign(
-            [
-                learningrate.decay_at_fixed_steps_default(lr, global_step)
-            ][FLAGS.learning_rate_decay_strategy]
-    )
-    tf.scalar_summary('learning_rate', lr)
+def training_op(total_loss, train_err, train_err_assign, global_step):
 
     loss_averages_op = _add_loss_summaries(total_loss)
-    train_err_avg_op = _add_train_err_summaries(train_err)
+    train_err_avg_op, train_err_avg = _add_train_err_summaries(train_err)
 
-    with tf.control_dependencies([loss_averages_op, train_err_avg_op, lr_decay_op]):
-        optimizer = OPTIMIZER(lr, **OPTIMIZER_ARGS)
-        grads = optimizer.compute_gradients(total_loss)
+    lr = tf.Variable(FLAGS.initial_learning_rate, name='learning_rate')
+    lr_decay_op = lr.assign(
+            [
+                learningrate.decay_at_fixed_steps_default(lr, global_step),
+                learningrate.raise_at_train_err_then_decay_at_fixed_steps_default(lr, global_step, train_err_avg)
+            ][FLAGS.learning_rate_decay_strategy]
+    )
+    tf.scalar_summary('learning_rate_summary', lr)
+
+    with tf.control_dependencies([train_err_avg_op, train_err_assign]):
+         with tf.control_dependencies([loss_averages_op, lr_decay_op]):
+            optimizer = OPTIMIZER(lr, **OPTIMIZER_ARGS)
+            grads = optimizer.compute_gradients(total_loss)
 
     apply_gradient_op = optimizer.apply_gradients(grads, global_step=global_step)
 

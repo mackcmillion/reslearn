@@ -13,3 +13,22 @@ def decay_at_fixed_steps(lr, global_step, thresholds, decay_factor):
                      lambda: lr * decay_factor,
                      lambda: lr)
     return new_lr
+
+
+def raise_at_train_err_then_decay_at_fixed_steps_default(lr, global_step, train_err):
+    return raise_at_train_err_then_decay_at_fixed_steps(lr, global_step, [32000, 48000], 0.1, train_err, 0.8, 0.1)
+
+
+def raise_at_train_err_then_decay_at_fixed_steps(lr, global_step, thresholds, decay_factor, train_err, err_thresh,
+                                                 raise_to):
+    err_thresh_tensor = tf.constant(err_thresh, dtype=tf.float32)
+
+    new_lr = tf.cond(tf.less(train_err, err_thresh_tensor),
+                     lambda: _raise_and_continue_normal_decay(lr, global_step, thresholds, decay_factor, raise_to),
+                     lambda: lr)
+    return new_lr
+
+
+def _raise_and_continue_normal_decay(lr, global_step, thresholds, decay_factor, raise_to):
+    lr = lr.assign(raise_to)
+    return decay_at_fixed_steps(lr, global_step, thresholds, decay_factor)
