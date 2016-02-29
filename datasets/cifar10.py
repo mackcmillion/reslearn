@@ -31,7 +31,10 @@ class Cifar10(Dataset):
         return self._inputs(False)
 
     def _inputs(self, is_training):
-        filenames = [os.path.join(FLAGS.cifar10_image_path, 'data_batch_%i.bin' % i) for i in xrange(1, 6)]
+        if is_training:
+            filenames = [os.path.join(FLAGS.cifar10_image_path, 'data_batch_%i.bin' % i) for i in xrange(1, 6)]
+        else:
+            filenames = [os.path.join(FLAGS.cifar10_image_path, 'test_batch.bin')]
         filename_queue = tf.train.string_input_producer(filenames, name='%s_filename_queue' %
                                                                         'training' if is_training else 'evaluation')
 
@@ -42,7 +45,8 @@ class Cifar10(Dataset):
         else:
             image = self._preprocess_for_evaluation(image)
 
-        min_num_examples_in_queue = int(FLAGS.min_frac_examples_in_queue * self._NUM_TRAINING_IMAGES)
+        min_num_examples_in_queue = int(FLAGS.min_frac_examples_in_queue *
+                                        self._NUM_TRAINING_IMAGES if is_training else self._NUM_VALIDATION_IMAGES)
         image_batch, label_batch = tf.train.shuffle_batch(
                 [image, label],
                 batch_size=FLAGS.batch_size,

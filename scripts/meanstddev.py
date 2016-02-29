@@ -3,31 +3,33 @@ import os
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 
+import util
 from config import FLAGS
 from scripts.labelmap import build_filename_list
 
 
 def compute_overall_mean_stddev(overwrite=False, num_threads=1, num_logs=10):
     if FLAGS.dataset == 'cifar10':
-        # TODO implement for test set
-        # TODO implement relative color values (divide by 256)
         _compute_overall_mean_stddev(overwrite, num_threads, num_logs,
                                      image_op=_image_op_cifar10,
                                      filenames=[os.path.join(FLAGS.cifar10_image_path, 'data_batch_%i.bin' % i) for i in
-                                                xrange(1, 6)],
+                                                xrange(1, 6)] +
+                                               [os.path.join(FLAGS.cifar10_image_path, 'test_batch.bin')],
                                      mean_stddev_path=FLAGS.cifar10_mean_stddev_path,
-                                     num_files=50000)
+                                     relative_colors=False,
+                                     num_files=60000)
     elif FLAGS.dataset == 'imagenet':
         _compute_overall_mean_stddev(overwrite, num_threads, num_logs,
                                      filenames=build_filename_list(),
                                      mean_stddev_path=FLAGS.mean_stddev_path,
+                                     relative_colors=True,
                                      image_op=_image_op_imagenet)
     else:
         raise ValueError('Unknown dataset.')
 
 
 def _compute_overall_mean_stddev(overwrite, num_threads, num_logs, image_op, filenames, mean_stddev_path,
-                                 num_files=None):
+                                 relative_colors, num_files=None):
     if gfile.Exists(mean_stddev_path):
         print 'Mean/stddev file already exists.'
         if overwrite:
@@ -41,7 +43,7 @@ def _compute_overall_mean_stddev(overwrite, num_threads, num_logs, image_op, fil
     mean = tf.Variable([0.0, 0.0, 0.0], trainable=False)
     total = tf.Variable(0.0, trainable=False)
 
-    image = image_op(filenames)
+    image = image_op(filenames, relative_colors)
 
     # mean computation
     mean_ops = _mean_ops(image, mean, total, num_threads)
@@ -54,7 +56,7 @@ def _compute_overall_mean_stddev(overwrite, num_threads, num_logs, image_op, fil
     covariance = tf.Variable(tf.zeros([3, 3], dtype=tf.float32), trainable=False)
     total = tf.Variable(0.0, trainable=False)
 
-    image = image_op(filenames)
+    image = image_op(filenames, relative_colors)
 
     covariance_ops = _covariance_ops(image, covariance, total, mean, num_threads)
     stddev, eigvals, eigvecs = _init_and_run_in_loop(covariance_ops, 'standard deviation', _covariance_final_ops,
@@ -77,15 +79,19 @@ def _compute_overall_mean_stddev(overwrite, num_threads, num_logs, image_op, fil
     tf.reset_default_graph()
 
 
-def _image_op_imagenet(filenames):
+def _image_op_imagenet(filenames, relative_colors):
     filename_queue = tf.train.string_input_producer(filenames, num_epochs=1)
     reader = tf.WholeFileReader()
     _, value = reader.read(filename_queue)
     image = tf.image.decode_jpeg(value, channels=3)
-    return tf.cast(image, tf.float32)
+    image = tf.cast(image, tf.float32)
+
+    if relative_colors:
+        image = util.absolute_to_relative_colors(image)
+    return image
 
 
-def _image_op_cifar10(filenames):
+def _image_op_cifar10(filenames, relative_colors):
     label_bytes = 1
     height = 32
     width = 32
@@ -99,7 +105,11 @@ def _image_op_cifar10(filenames):
     record_bytes = tf.decode_raw(value, tf.uint8)
     depth_major = tf.reshape(tf.slice(record_bytes, [label_bytes], [image_bytes]), [depth, height, width])
     image = tf.transpose(depth_major, [1, 2, 0])
-    return tf.cast(image, tf.float32)
+    image = tf.cast(image, tf.float32)
+
+    if relative_colors:
+        image = util.absolute_to_relative_colors(image)
+    return image
 
 
 def _mean_ops(image, mean, total, num_threads):
@@ -118,11 +128,9 @@ def _mean_ops(image, mean, total, num_threads):
 
 def _covariance_ops(image, covariance, total, mean, num_threads):
     num = tf.mul(tf.shape(image)[0], tf.shape(image)[1])
-
-    mean_tiled = tf.tile(mean, tf.expand_dims(num, 0))
-    mean_tiled = tf.reshape(mean_tiled, tf.pack([tf.shape(image)[0], tf.shape(image)[1], 3]))
-
     num = tf.cast(num, tf.float32)
+
+    mean_tiled = util.replicate_to_image_shape(image, mean)
 
     remainders = tf.sub(image, mean_tiled)
     remainders_stack = tf.pack([remainders, remainders, remainders])
@@ -187,7 +195,7 @@ def _covariance_final_ops(sum_squares, total):
     total_3x3 = tf.reshape(tf.tile(tf.expand_dims(total, 0), [9]), [3, 3])
     covariance = tf.div(sum_squares, total_3x3)
 
-    variance = tf.gather(tf.reshape(covariance, [-1]), [0, 3, 6])
+    variance = tf.gather(tf.reshape(covariance, [-1]), [0, 4, 8])
 
     # eigenvalues and eigenvectors for PCA
     eigens = tf.self_adjoint_eig(covariance)

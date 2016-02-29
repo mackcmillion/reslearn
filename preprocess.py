@@ -1,6 +1,8 @@
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops as cf
 
+from util import replicate_to_image_shape
+
 
 def resize_random(image, minval, maxval_inc):
     new_shorter_edge_tensor = tf.random_uniform([], minval=minval, maxval=maxval_inc + 1, dtype=tf.int32)
@@ -59,25 +61,17 @@ def color_noise(image, eigvals, eigvecs):
     q = tf.matmul(eigvecs, tf.expand_dims(alpha * eigvals, 1))
     q = tf.squeeze(q)
 
-    return image + _replicate_to_image_shape(image, q)
+    return image + replicate_to_image_shape(image, q)
 
 
 def normalize_colors(image, mean, stddev):
     mean = tf.constant(mean, dtype=tf.float32)
     stddev = tf.constant(stddev, dtype=tf.float32)
 
-    mean = _replicate_to_image_shape(image, mean)
-    stddev = _replicate_to_image_shape(image, stddev)
+    mean = replicate_to_image_shape(image, mean)
+    stddev = replicate_to_image_shape(image, stddev)
 
     return (image - mean) / stddev
-
-
-def _replicate_to_image_shape(image, t):
-    img_shape = tf.shape(image)
-    multiples = tf.pack([img_shape[0], img_shape[1], 1])
-    t = tf.expand_dims(tf.expand_dims(t, 0), 0)
-    t = tf.tile(t, multiples)
-    return t
 
 
 def ten_crop(image):

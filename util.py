@@ -72,3 +72,17 @@ def load_meanstddev(path):
         eigvec = eigvec_str[1:-1].split(',')
         eigvecs.append([float(eigvec[0]), float(eigvec[1]), float(eigvec[2])])
     return mean, stddev, eigvals, eigvecs
+
+
+def replicate_to_image_shape(image, t, channels=1):
+    img_shape = tf.shape(image)
+    multiples = tf.pack([img_shape[0], img_shape[1], channels])
+    t = tf.expand_dims(tf.expand_dims(t, 0), 0)
+    t = tf.tile(t, multiples)
+    return t
+
+
+# transforms color values to values relative to the channel maximum (256)
+def absolute_to_relative_colors(image):
+    maximum = replicate_to_image_shape(image, tf.constant([256], dtype=tf.float32, shape=[1]), channels=3)
+    return tf.div(image, maximum)

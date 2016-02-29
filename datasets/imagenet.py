@@ -77,7 +77,8 @@ class ImageNet(Dataset):
         # prepare image
         image = tf.image.decode_jpeg(image, channels=3)
         feature_img = tf.cast(image, tf.float32)
-        processed_img = self._preprocess_for_training(feature_img)
+        relative_img = util.absolute_to_relative_colors(feature_img)
+        processed_img = self._preprocess_for_training(relative_img)
 
         return [processed_img, label]
 

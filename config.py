@@ -25,13 +25,13 @@ tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
 OPTIMIZER = tf.train.MomentumOptimizer
 OPTIMIZER_ARGS = {'momentum': 0.9}
 
-tf.app.flags.DEFINE_float('initial_learning_rate', 0.01,
+tf.app.flags.DEFINE_float('initial_learning_rate', 0.1,
                           """
                           The initial learning rate. May be decayed over time by the selected learning rate
                           decay strategy.
                           """)
 
-tf.app.flags.DEFINE_integer('learning_rate_decay_strategy', 1,
+tf.app.flags.DEFINE_integer('learning_rate_decay_strategy', 0,
                             """
                             The schedule that is used to decay the learning rate. Possible options:
                             - 0 Divides the learning rate by 10 at 32000 and 48000 steps.
