@@ -64,13 +64,13 @@ tf.app.flags.DEFINE_integer('log_interval', 1,
 tf.app.flags.DEFINE_integer('summary_interval', 1,
                             """The number of steps after which to create a new summary.""")
 
-tf.app.flags.DEFINE_integer('checkpoint_interval', 10,
+tf.app.flags.DEFINE_integer('checkpoint_interval', 5,
                             """The number of steps after which to create a new checkpoint.""")
 
 tf.app.flags.DEFINE_integer('eval_interval_secs', 10,
                             """Interval seconds in which to poll the checkpoint directory for new checkpoint files.""")
 
-tf.app.flags.DEFINE_integer('max_num_examples', 30,
+tf.app.flags.DEFINE_integer('max_num_examples', 10,
                             """Maximum number of examples to process in one evaluation run.""")
 
 tf.app.flags.DEFINE_boolean('run_once', False,
