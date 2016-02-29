@@ -2,6 +2,7 @@ import os
 import random
 
 import tensorflow as tf
+from architecture.building_blocks import _convolve, _mask_input
 from tensorflow.python.platform import gfile
 from tensorflow.python.ops import control_flow_ops as cf
 
@@ -24,25 +25,61 @@ from scripts.meanstddev import _compute_overall_mean_stddev
 #
 # print sum_of_squares.eval()
 
+#
+# def test_mean_stddev():
+#     _compute_overall_mean_stddev(overwrite=True,
+#                                  num_threads=4,
+#                                  num_logs=10,
+#                                  image_op=_mock_images,
+#                                  filenames=[],
+#                                  mean_stddev_path=FLAGS.cifar10_mean_stddev_path,
+#                                  relative_colors=False,
+#                                  num_files=1000)
+#
+#
+# def _mock_images(filenames, relative_colors):
+#     return tf.random_normal([32, 32, 3], dtype=tf.float32, mean=0.0, stddev=1.0)
+#
+#
+# if __name__ == '__main__':
+#     test_mean_stddev()
 
-def test_mean_stddev():
-    _compute_overall_mean_stddev(overwrite=True,
-                                 num_threads=4,
-                                 num_logs=10,
-                                 image_op=_mock_images,
-                                 filenames=[],
-                                 mean_stddev_path=FLAGS.cifar10_mean_stddev_path,
-                                 relative_colors=False,
-                                 num_files=1000)
-
-
-def _mock_images(filenames, relative_colors):
-    return tf.random_normal([32, 32, 3], dtype=tf.float32, mean=0.0, stddev=1.0)
-
-
-if __name__ == '__main__':
-    test_mean_stddev()
-
+# def test_conv_simulation():
+#     sess = tf.InteractiveSession()
+#     # x = tf.constant([[[1, 2], [1, 2]], [[1, 2], [1, 2]]], dtype=tf.float32, shape=[2, 2, 2])
+#     # x = tf.expand_dims(x, 0)
+#     # print x.get_shape()
+#     #
+#     w = tf.constant([[1, 1], [1, 1]], dtype=tf.float32, shape=[2, 2])
+#     #
+#     # result = _convolve(x, w)
+#     # print result.get_shape()
+#     # print result.eval()
+#     #
+#     # print
+#
+#     x = tf.constant([[[1, 2], [1, 2], [1, 2], [1, 2]],
+#                      [[1, 2], [1, 2], [1, 2], [1, 2]],
+#                      [[1, 2], [1, 2], [1, 2], [1, 2]],
+#                      [[1, 2], [1, 2], [1, 2], [1, 2]]], dtype=tf.float32, shape=[4, 4, 2])
+#     x = tf.expand_dims(x, 0)
+#     # print x.get_shape()
+#     # print x.eval()
+#
+#     w = tf.expand_dims(tf.expand_dims(w, 0), 0)
+#     extracted = tf.nn.max_pool(_mask_input(x), [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
+#     conv = tf.nn.conv2d(extracted, w, [1, 1, 1, 1], padding='SAME')
+#     print conv.eval()
+#
+#     w = tf.constant([[1, 1], [1, 1]], dtype=tf.float32, shape=[2, 2])
+#
+#     result = _convolve(x, w)
+#     print result.get_shape()
+#     print result.eval()
+#
+#
+# if __name__ == '__main__':
+#     test_conv_simulation()
 
     # sess = tf.InteractiveSession()
     #

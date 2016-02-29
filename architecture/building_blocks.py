@@ -48,22 +48,11 @@ def _identity_mapping(x, x_shape, f_shape, name):
 
 
 def _projection_mapping(x, x_shape, f_shape, name):
-    # TODO this is ugly. Replace with 1x1 convolution as soon as it's supported.
+    # TODO this is ugly. Replace with 1x1 convolution with stride 2 as soon as it's supported.
     # convolution-like feature extraction using 1x1 max-pooling with stride 2
     extracted = tf.nn.max_pool(_mask_input(x), [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
-    w = unoptimized_weight_variable([x_shape[3].value, f_shape[3].value], name=name + '_residualWeights')
-
-    # simulate 1x1 convolution using batch matrix multiplication
-    extracted_shape = extracted.get_shape().as_list()
-    # stack all the extracted patches of the image
-    patch_stack = tf.reshape(extracted, [extracted_shape[0], -1, extracted_shape[3]])
-    # make W the same batch size as the input by simply replicating it
-    w_expanded = tf.tile(tf.expand_dims(w, 0), [extracted_shape[0], 1, 1])
-    # final matrix multiplication - should apply the operation specified in the documentation of conv2d:
-    # "3. For each patch, right-multiplies the filter matrix and the image patch vector."
-    projection = tf.batch_matmul(patch_stack, w_expanded)
-    # make the result a 2D image batch again
-    return tf.reshape(projection, [extracted_shape[0], extracted_shape[1], extracted_shape[2], -1])
+    w = unoptimized_weight_variable([1, 1, x_shape[3].value, f_shape[3].value], name=name + '_residualWeights')
+    return tf.nn.conv2d(extracted, w, [1, 1, 1, 1], padding='SAME')
 
 
 def _mask_input(x):
