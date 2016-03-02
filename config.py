@@ -28,7 +28,8 @@ tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
 OPTIMIZER = tf.train.MomentumOptimizer
 OPTIMIZER_ARGS = {'momentum': 0.9}
 
-tf.app.flags.DEFINE_float('initial_learning_rate', 0.1,
+
+tf.app.flags.DEFINE_float('initial_learning_rate', 0.01,
                           """
                           The initial learning rate. May be decayed over time by the selected learning rate
                           decay strategy.
@@ -67,7 +68,7 @@ tf.app.flags.DEFINE_integer('summary_interval', 100,
 tf.app.flags.DEFINE_integer('checkpoint_interval', 100,
                             """The number of steps after which to create a new checkpoint.""")
 
-tf.app.flags.DEFINE_integer('eval_interval_secs', 10,
+tf.app.flags.DEFINE_integer('eval_interval_secs', 100,
                             """Interval seconds in which to poll the checkpoint directory for new checkpoint files.""")
 
 tf.app.flags.DEFINE_integer('max_num_examples', 1000,
