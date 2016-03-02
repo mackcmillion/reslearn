@@ -1,18 +1,9 @@
 #!/bin/bash
 
-#SBATCH -o /home/hpc/pr63so/ga67zux2/ba/resnet_20.out
-#SBATCH -D /home/hpc/pr63so/ga67zux2/ba/reslearn
-#SBATCH -J resnet20
-#SBATCH --get-user-env
-#SBATCH --partition=snb
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
-#SBATCH --mail-type=END
-#SBATCH --mail-user=mumme@in.tum.de
-#SBATCH --export=NONE
-#SBATCH --time=24:00:00
-#SBATCH --nodelist=mac-snb[1-10]
+echo "Started computation for resnet_20..."
 
-python /home/hpc/pr63so/ga67zux2/ba/reslearn/main.py --experiment_name=resnet_20 --model=cifar10-resnet-20 \
- --data_path=/home/hpc/pr63so/ga67zux2/ba/data --summary_path=/home/hpc/pr63so/ga67zux2/ba/summaries \
- --checkpoint_path=/home/hpc/pr63so/ga67zux2/ba/checkpoints
+python /root/reslearn/main.py --experiment_name=resnet_20 --dataset=cifar10 --model=cifar10-resnet-20 \
+ --data_path=/root/data --summary_path=/root/summaries --checkpoint_path=/root/checkpoints \
+ 2>&1 > /root/logs/resnet_20.log
+
+echo "Finished computation for resnet_20."
