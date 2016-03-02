@@ -19,7 +19,7 @@ class Cifar10(Dataset):
 
     def pre_graph(self):
         compute_overall_mean_stddev(overwrite=False, num_threads=FLAGS.num_consuming_threads, num_logs=10)
-        self._color_data = util.load_meanstddev(FLAGS.mean_stddev_path)
+        self._color_data = util.load_meanstddev(FLAGS.cifar10_mean_stddev_path)
 
     def preliminary(self):
         pass
