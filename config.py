@@ -14,6 +14,9 @@ tf.app.flags.DEFINE_string('dataset', 'cifar10',
 tf.app.flags.DEFINE_string('model', 'cifar10-resnet-20',
                            """The name of the net to train.""")
 
+tf.app.flags.DEFINE_boolean('resume', True,
+                            """Whether the training should be resumed from the latest found checkpoint.""")
+
 tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
                            """
                            The method to adjust the dimensions of the input layer when using residual building blocks.
@@ -49,7 +52,7 @@ tf.app.flags.DEFINE_float('weight_decay', 0.0001,
 tf.app.flags.DEFINE_integer('training_steps', 64000,
                             """Number of iterations for training.""")
 
-tf.app.flags.DEFINE_integer('batch_size', 128,
+tf.app.flags.DEFINE_integer('batch_size', 10,
                             """Size of the mini-batches used for training.""")
 
 tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.4,
@@ -62,10 +65,10 @@ tf.app.flags.DEFINE_integer('num_consuming_threads', 3,
 tf.app.flags.DEFINE_integer('log_interval', 1,
                             """The number of steps after which to print a log message.""")
 
-tf.app.flags.DEFINE_integer('summary_interval', 100,
+tf.app.flags.DEFINE_integer('summary_interval', 10,
                             """The number of steps after which to create a new summary.""")
 
-tf.app.flags.DEFINE_integer('checkpoint_interval', 100,
+tf.app.flags.DEFINE_integer('checkpoint_interval', 10,
                             """The number of steps after which to create a new checkpoint.""")
 
 tf.app.flags.DEFINE_integer('eval_interval_secs', 100,

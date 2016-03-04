@@ -86,3 +86,7 @@ def replicate_to_image_shape(image, t, channels=1):
 def absolute_to_relative_colors(image):
     maximum = replicate_to_image_shape(image, tf.constant([256], dtype=tf.float32, shape=[1]), channels=3)
     return tf.div(image, maximum)
+
+
+def extract_global_step(path):
+    return int(path.split('/')[-1].split('-')[-1])

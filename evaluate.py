@@ -1,17 +1,16 @@
 # most of this code is taken from
 # https://tensorflow.googlesource.com/tensorflow/+/master/tensorflow/models/image/cifar10/cifar10_eval.py
-import os
-
-import numpy
-import time
-
 import math
-import tensorflow as tf
+import os
+import time
 from datetime import datetime as dt
 
+import numpy
+import tensorflow as tf
 from tensorflow.python.platform import gfile
 
 from config import FLAGS
+from util import extract_global_step
 
 
 def evaluate(dataset, model, summary_path, read_checkpoint_path):
@@ -81,10 +80,6 @@ def _eval_once(last, saver, read_checkpoint_path, summary_writer, top_k_op, summ
         return global_step
 
 
-def _extract_global_step(path):
-    return int(path.split('/')[-1].split('-')[-1])
-
-
 # since tf.train.get_checkpoint_state always returns the latest checkpoint file, but we only want to run the script
 # when a new checkpoint is available
 def _has_new_checkpoint(path, last):
@@ -92,7 +87,7 @@ def _has_new_checkpoint(path, last):
     for f in gfile.ListDirectory(path):
         if not gfile.IsDirectory(f):
             try:
-                global_step = _extract_global_step(f)
+                global_step = extract_global_step(f)
             except Exception:  # pylint: disable=broad-except
                 continue
             if global_step and (not last or global_step > last):

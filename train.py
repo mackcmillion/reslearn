@@ -8,17 +8,15 @@ from datetime import datetime as dt
 import tensorflow as tf
 
 import learningrate
+import util
 from config import OPTIMIZER, FLAGS, OPTIMIZER_ARGS
 from util import format_time_hhmmss
 
 
 def train(dataset, model, summary_path, checkpoint_path):
-
     sess = tf.Session(config=tf.ConfigProto(log_device_placement=False))
 
     dataset.preliminary()
-
-    global_step = tf.Variable(0, trainable=False)
 
     # input and training procedure
     images, true_labels = dataset.training_inputs()
@@ -26,9 +24,22 @@ def train(dataset, model, summary_path, checkpoint_path):
     loss_op = loss(predictions, true_labels)
     train_err = tf.Variable(1.0, trainable=False)
     train_err_assign = training_error(predictions, true_labels, train_err)
-    train_op = training_op(loss_op, train_err, train_err_assign, global_step)
 
+    global_step = 0
     saver = tf.train.Saver(tf.all_variables())
+
+    # optionally resume from existing checkpoint
+    if FLAGS.resume:
+        ckpt = tf.train.get_checkpoint_state(checkpoint_path)
+        if ckpt and ckpt.model_checkpoint_path:
+            saver.restore(sess, ckpt.model_checkpoint_path)
+            global_step = util.extract_global_step(ckpt.model_checkpoint_path)
+            print '%s - Resuming training from global step %i.' % (dt.now(), global_step)
+        else:
+            print '%s - No checkpoint found. Starting fresh run of %s.' % (dt.now(), FLAGS.experiment_name)
+
+    global_step = tf.Variable(global_step, trainable=False)
+    train_op = training_op(loss_op, train_err, train_err_assign, global_step)
 
     summary_op = tf.merge_all_summaries()
     init_op = tf.initialize_all_variables()
@@ -129,7 +140,6 @@ def _add_train_err_summaries(train_err):
 
 
 def training_op(total_loss, train_err, train_err_assign, global_step):
-
     loss_averages_op = _add_loss_summaries(total_loss)
     train_err_avg_op, train_err_avg = _add_train_err_summaries(train_err)
 
@@ -143,7 +153,7 @@ def training_op(total_loss, train_err, train_err_assign, global_step):
     tf.scalar_summary('learning_rate_summary', lr)
 
     with tf.control_dependencies([train_err_avg_op, train_err_assign]):
-         with tf.control_dependencies([loss_averages_op, lr_decay_op]):
+        with tf.control_dependencies([loss_averages_op, lr_decay_op]):
             optimizer = OPTIMIZER(lr, **OPTIMIZER_ARGS)
             grads = optimizer.compute_gradients(total_loss)
 
