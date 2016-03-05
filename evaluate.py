@@ -63,7 +63,7 @@ def _eval_once(last, saver, read_checkpoint_path, summary_writer, top_k_op, summ
                 true_count += numpy.sum(predictions)
                 step += 1
 
-            accuracy = true_count / total_sample_count
+            accuracy = (true_count * 1.0) / total_sample_count
             test_error = 1 - accuracy
             print '%s - step %i: test error = %.2f%%' % (dt.now(), global_step, test_error * 100)
 
@@ -99,7 +99,8 @@ def _has_new_checkpoint(path, last):
 
 
 def _in_top_k(predictions, true_labels):
-    predictions = tf.nn.softmax(predictions, name='eval_softmax')
+    # softmax is not necessary here
+    # predictions = tf.nn.softmax(predictions, name='eval_softmax')
     return tf.nn.in_top_k(predictions, true_labels, FLAGS.top_k)
 
 
