@@ -26,13 +26,13 @@ def train(dataset, model, summary_path, checkpoint_path):
     train_err_assign = training_error(predictions, true_labels, train_err)
 
     global_step = 0
-    saver = tf.train.Saver(tf.all_variables())
+    saver = tf.train.Saver(tf.all_variables(), max_to_keep=None)
 
     # optionally resume from existing checkpoint
+    ckpt = None
     if FLAGS.resume:
         ckpt = tf.train.get_checkpoint_state(checkpoint_path)
         if ckpt and ckpt.model_checkpoint_path:
-            saver.restore(sess, ckpt.model_checkpoint_path)
             global_step = util.extract_global_step(ckpt.model_checkpoint_path)
             print '%s - Resuming training from global step %i.' % (dt.now(), global_step)
         else:
@@ -40,6 +40,10 @@ def train(dataset, model, summary_path, checkpoint_path):
 
     global_step = tf.Variable(global_step, trainable=False)
     train_op = training_op(loss_op, train_err, train_err_assign, global_step)
+
+    # restore here to make sure all variables are defined before assigning them
+    if ckpt and ckpt.model_checkpoint_path:
+        saver.restore(sess, ckpt.model_checkpoint_path)
 
     summary_op = tf.merge_all_summaries()
     init_op = tf.initialize_all_variables()

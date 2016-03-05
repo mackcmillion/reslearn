@@ -20,7 +20,7 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
         predictions = model.inference(images, dataset.num_classes)
         top_k_op = _in_top_k(predictions, true_labels)
 
-        saver = tf.train.Saver(tf.trainable_variables())
+        saver = tf.train.Saver(tf.trainable_variables(), max_to_keep=None)
 
         test_err = tf.placeholder(tf.float32, shape=[], name='test_err')
         # FIXME moving average not working right now since we are using different sessions
