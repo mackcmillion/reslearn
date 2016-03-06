@@ -14,7 +14,7 @@ tf.app.flags.DEFINE_string('dataset', 'cifar10',
 tf.app.flags.DEFINE_string('model', 'cifar10-resnet-20',
                            """The name of the net to train.""")
 
-tf.app.flags.DEFINE_boolean('resume', True,
+tf.app.flags.DEFINE_boolean('resume', False,
                             """Whether the training should be resumed from the latest found checkpoint.""")
 
 tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
