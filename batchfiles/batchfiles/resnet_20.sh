@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir /root/logs
+
 echo "Started computation for resnet_20..."
 
 stdbuf -oL python /root/reslearn/main.py --experiment_name=resnet_20 --dataset=cifar10 --model=cifar10-resnet-20 \
