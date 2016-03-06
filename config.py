@@ -52,7 +52,7 @@ tf.app.flags.DEFINE_float('weight_decay', 0.0001,
 tf.app.flags.DEFINE_integer('training_steps', 64000,
                             """Number of iterations for training.""")
 
-tf.app.flags.DEFINE_integer('batch_size', 10,
+tf.app.flags.DEFINE_integer('batch_size', 128,
                             """Size of the mini-batches used for training.""")
 
 tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.4,
