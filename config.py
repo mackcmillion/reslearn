@@ -65,10 +65,10 @@ tf.app.flags.DEFINE_integer('num_consuming_threads', 3,
 tf.app.flags.DEFINE_integer('log_interval', 1,
                             """The number of steps after which to print a log message.""")
 
-tf.app.flags.DEFINE_integer('summary_interval', 10,
+tf.app.flags.DEFINE_integer('summary_interval', 100,
                             """The number of steps after which to create a new summary.""")
 
-tf.app.flags.DEFINE_integer('checkpoint_interval', 10,
+tf.app.flags.DEFINE_integer('checkpoint_interval', 100,
                             """The number of steps after which to create a new checkpoint.""")
 
 tf.app.flags.DEFINE_integer('eval_interval_secs', 100,
