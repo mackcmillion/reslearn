@@ -119,6 +119,29 @@ tf.app.flags.DEFINE_string('cifar10_mean_stddev_path',
                            os.path.join(FLAGS.data_path, 'cifar-10-batches-bin/mean_stddev'),
                            """Path where to store/load precomputed mean/stddev over a whole CIFAR-10 dataset.""")
 
+# Yelp data directory and file paths
+tf.app.flags.DEFINE_string('yelp_training_image_path', os.path.join(FLAGS.data_path, 'yelp/train_photos'),
+                           """Path to training images for Yelp dataset.""")
+
+tf.app.flags.DEFINE_string('yelp_test_image_path', os.path.join(FLAGS.data_path, 'yelp/test_photos'),
+                           """Path to test images for Yelp dataset.""")
+
+tf.app.flags.DEFINE_string('yelp_training_photo_biz_id_path',
+                           os.path.join(FLAGS.data_path, 'yelp/train_photo_to_biz_ids.csv'),
+                           """Path to file mapping training photo ids to business ids.""")
+
+tf.app.flags.DEFINE_string('yelp_test_photo_biz_id_path',
+                           os.path.join(FLAGS.data_path, 'yelp/test_photo_to_biz_ids.csv'),
+                           """Path to file mapping test photo ids to business ids.""")
+
+tf.app.flags.DEFINE_string('yelp_biz_id_label_path',
+                           os.path.join(FLAGS.data_path, 'yelp/train.csv'),
+                           """Path to file mapping business ids to class labels.""")
+
+tf.app.flags.DEFINE_string('yelp_training_set',
+                           os.path.join(FLAGS.data_path, 'yelp/labelmap'),
+                           """Path to the file mapping each filename to its labels.""")
+
 # target directory and file paths
 tf.app.flags.DEFINE_string('summary_path', '/home/max/Studium/Kurse/BA2/summaries',
                            """Path to save summary files to. Needed for TensorBoard visualization.""")

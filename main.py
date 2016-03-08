@@ -10,6 +10,7 @@ from tensorflow.python.platform import gfile
 from datasets.cifar10 import Cifar10
 from datasets.imagenet import ImageNet
 from config import FLAGS
+from datasets.yelp import Yelp
 from models.resnet34 import ResNet34
 from models.resnet6nplus2 import CIFAR10ResNet20, CIFAR10ResNet32, CIFAR10ResNet44, CIFAR10ResNet56, CIFAR10ResNet110, \
     CIFAR10ResNet1202
@@ -26,7 +27,7 @@ MODEL_DICT = {'resnet-34': ResNet34,
               'cifar10-resnet-110': CIFAR10ResNet110,
               'cifar10-resnet-1202': CIFAR10ResNet1202
               }
-DATASET_DICT = {'cifar10': Cifar10, 'imagenet': ImageNet}
+DATASET_DICT = {'cifar10': Cifar10, 'imagenet': ImageNet, 'yelp': Yelp}
 
 
 def main(argv=None):  # pylint: disable=unused-argument

@@ -1,3 +1,4 @@
+import csv
 import os
 
 from tensorflow.python.platform import gfile
@@ -5,6 +6,47 @@ from tensorflow.python.platform import gfile
 from config import FLAGS
 
 WNID_LID_MAP = None
+
+
+def create_label_map_file_yelp(overwrite=False, num_logs=10):
+
+    if gfile.Exists(FLAGS.training_set):
+        print 'Labelmap file already exists.'
+        if overwrite:
+            print 'Overwriting file...'
+            gfile.Remove(FLAGS.training_set)
+        else:
+            print 'Nothing to do here.'
+            return
+        print
+
+    print 'Building filename list...'
+    filenames = build_filename_list(FLAGS.yelp_training_image_path)
+    photo_to_biz_id = _get_photo_biz_id_map()
+    biz_id_to_labels = _get_biz_id_labels_map()
+
+    with open(FLAGS.yelp_training_set, 'w') as f:
+        for filename in filenames:
+            # FIXME extract photo id from filename
+            f.write('%s,%s\n' % (filename, biz_id_to_labels[photo_to_biz_id[filename]]))
+
+
+def _get_photo_biz_id_map():
+    photo_to_biz_id = {}
+    with open(FLAGS.yelp_training_photo_biz_id_path) as f:
+        csvreader = csv.DictReader(f)
+        for row in csvreader:
+            photo_to_biz_id[row['photo_id']] = row['business_id']
+    return photo_to_biz_id
+
+
+def _get_biz_id_labels_map():
+    biz_id_to_labels = {}
+    with open(FLAGS.yelp_biz_id_label_path) as f:
+        csvreader = csv.DictReader(f)
+        for row in csvreader:
+            biz_id_to_labels[row['business_id']] = row['labels']
+    return biz_id_to_labels
 
 
 def create_label_map_file(overwrite=False, num_logs=10):
@@ -20,7 +62,7 @@ def create_label_map_file(overwrite=False, num_logs=10):
         print
 
     print 'Building filename list...'
-    filenames = build_filename_list()
+    filenames = build_filename_list(FLAGS.training_images)
 
     f = open(FLAGS.training_set, 'w')
 
@@ -43,9 +85,9 @@ def create_label_map_file(overwrite=False, num_logs=10):
     f.close()
 
 
-def build_filename_list():
+def build_filename_list(path):
     image_files = []
-    for dirpath, _, filenames in os.walk(FLAGS.training_images):
+    for dirpath, _, filenames in os.walk(path):
         image_files += [os.path.join(dirpath, filename) for filename in filenames]
     return image_files
 
