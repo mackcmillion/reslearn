@@ -116,10 +116,11 @@ def create_label_map_file(overwrite=False, num_logs=10):
     f.close()
 
 
-def build_filename_list(path):
+def build_filename_list(*paths):
     image_files = []
-    for dirpath, _, filenames in os.walk(path):
-        image_files += [os.path.join(dirpath, filename) for filename in filenames]
+    for p in paths:
+        for dirpath, _, filenames in os.walk(p):
+            image_files += [os.path.join(dirpath, filename) for filename in filenames]
     return image_files
 
 

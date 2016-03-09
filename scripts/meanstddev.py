@@ -1,4 +1,5 @@
 import os
+import random
 
 import tensorflow as tf
 from tensorflow.python.platform import gfile
@@ -17,10 +18,18 @@ def compute_overall_mean_stddev(overwrite=False, num_threads=1, num_logs=10):
                                                [os.path.join(FLAGS.cifar10_image_path, 'test_batch.bin')],
                                      mean_stddev_path=FLAGS.cifar10_mean_stddev_path,
                                      relative_colors=False,
-                                     num_files=60000)
+                                     num_imgs=60000)
+    elif FLAGS.dataset == 'yelp':
+        _compute_overall_mean_stddev(overwrite, num_threads, num_logs,
+                                     filenames=yelp_build_filename_list(FLAGS.yelp_training_image_path,
+                                                                        FLAGS.yelp_test_image_path),
+                                     mean_stddev_path=FLAGS.yelp_mean_stddev_path,
+                                     relative_colors=True,
+                                     image_op=_image_op_imagenet,
+                                     random_subset_size=1000)
     elif FLAGS.dataset == 'imagenet':
         _compute_overall_mean_stddev(overwrite, num_threads, num_logs,
-                                     filenames=build_filename_list(),
+                                     filenames=build_filename_list(FLAGS.training_images),
                                      mean_stddev_path=FLAGS.mean_stddev_path,
                                      relative_colors=True,
                                      image_op=_image_op_imagenet)
@@ -29,7 +38,7 @@ def compute_overall_mean_stddev(overwrite=False, num_threads=1, num_logs=10):
 
 
 def _compute_overall_mean_stddev(overwrite, num_threads, num_logs, image_op, filenames, mean_stddev_path,
-                                 relative_colors, num_files=None):
+                                 relative_colors, num_imgs=None, random_subset_size=None):
     if gfile.Exists(mean_stddev_path):
         print 'Mean/stddev file already exists.'
         if overwrite:
@@ -40,6 +49,12 @@ def _compute_overall_mean_stddev(overwrite, num_threads, num_logs, image_op, fil
             return
         print
 
+    if random_subset_size:
+        if random_subset_size > len(filenames):
+            raise ValueError('Size of subset greater than available files.')
+        else:
+            filenames = random.sample(filenames, random_subset_size)
+
     mean = tf.Variable([0.0, 0.0, 0.0], trainable=False)
     total = tf.Variable(0.0, trainable=False)
 
@@ -48,7 +63,7 @@ def _compute_overall_mean_stddev(overwrite, num_threads, num_logs, image_op, fil
     # mean computation
     mean_ops = _mean_ops(image, mean, total, num_threads)
     mean = _init_and_run_in_loop(mean_ops, 'mean', _mean_final_op, (mean, total), num_logs,
-                                 len(filenames) if not num_files else num_files)
+                                 len(filenames) if not num_imgs else num_imgs)
 
     tf.reset_default_graph()
 
@@ -61,7 +76,7 @@ def _compute_overall_mean_stddev(overwrite, num_threads, num_logs, image_op, fil
     covariance_ops = _covariance_ops(image, covariance, total, mean, num_threads)
     stddev, eigvals, eigvecs = _init_and_run_in_loop(covariance_ops, 'standard deviation', _covariance_final_ops,
                                                      (covariance, total), num_logs,
-                                                     len(filenames) if not num_files else num_files)
+                                                     len(filenames) if not num_imgs else num_imgs)
 
     print 'Computed mean as %s and standard deviation as %s.' % (str(mean), str(stddev))
 
@@ -205,5 +220,17 @@ def _covariance_final_ops(sum_squares, total):
     return tf.sqrt(variance), eigenvalues, eigenvectors
 
 
-if __name__ == '__main__':
+def yelp_build_filename_list(*paths):
+    image_files = []
+    for p in paths:
+        for dirpath, _, filenames in os.walk(p):
+            image_files += [os.path.join(dirpath, filename) for filename in filenames if not filename.startswith('._')]
+    return image_files
+
+
+def main(argv=None):  # pylint: disable=unused-argument
     compute_overall_mean_stddev(overwrite=True, num_threads=4)
+
+
+if __name__ == '__main__':
+    tf.app.run()
