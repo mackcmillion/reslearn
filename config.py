@@ -31,7 +31,6 @@ tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
 OPTIMIZER = tf.train.MomentumOptimizer
 OPTIMIZER_ARGS = {'momentum': 0.9}
 
-
 tf.app.flags.DEFINE_float('initial_learning_rate', 0.01,
                           """
                           The initial learning rate. May be decayed over time by the selected learning rate
@@ -139,8 +138,14 @@ tf.app.flags.DEFINE_string('yelp_biz_id_label_path',
                            """Path to file mapping business ids to class labels.""")
 
 tf.app.flags.DEFINE_string('yelp_training_set',
-                           os.path.join(FLAGS.data_path, 'yelp/labelmap'),
-                           """Path to the file mapping each filename to its labels.""")
+                           os.path.join(FLAGS.data_path, 'yelp/labelmap_train'),
+                           """Path to the file mapping each filename to its labels.
+                           These files are used for training.""")
+
+tf.app.flags.DEFINE_string('yelp_validation_set',
+                           os.path.join(FLAGS.data_path, 'yelp/labelmap_val'),
+                           """Path to the file mapping each filename to its labels.
+                           These files are used for validation.""")
 
 # target directory and file paths
 tf.app.flags.DEFINE_string('summary_path', '/home/max/Studium/Kurse/BA2/summaries',

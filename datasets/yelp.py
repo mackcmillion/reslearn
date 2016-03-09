@@ -6,7 +6,7 @@ from datasets.dataset import Dataset
 class Yelp(Dataset):
 
     def __init__(self):
-        super(Yelp, self).__init__('yelp', 10)
+        super(Yelp, self).__init__('yelp', 9)
 
     def pre_graph(self):
         pass
