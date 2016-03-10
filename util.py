@@ -90,3 +90,6 @@ def absolute_to_relative_colors(image):
 
 def extract_global_step(path):
     return int(path.split('/')[-1].split('-')[-1])
+
+
+DATE_FORMAT = '%Y-%m-%d_%H-%M-%S'

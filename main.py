@@ -2,21 +2,20 @@
 
 import os
 import threading
+from datetime import datetime as dt
 
 import tensorflow as tf
-from datetime import datetime as dt
 from tensorflow.python.platform import gfile
 
+from config import FLAGS
 from datasets.cifar10 import Cifar10
 from datasets.imagenet import ImageNet
-from config import FLAGS
+from evaluate import evaluate
 from models.resnet34 import ResNet34
 from models.resnet6nplus2 import CIFAR10ResNet20, CIFAR10ResNet32, CIFAR10ResNet44, CIFAR10ResNet56, CIFAR10ResNet110, \
     CIFAR10ResNet1202
 from train import train
-from evaluate import evaluate
-
-DATE_FORMAT = '%Y-%m-%d_%H-%M-%S'
+from util import DATE_FORMAT
 
 MODEL_DICT = {'resnet-34': ResNet34,
               'cifar10-resnet-20': CIFAR10ResNet20,
