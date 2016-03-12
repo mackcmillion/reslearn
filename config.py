@@ -14,6 +14,12 @@ tf.app.flags.DEFINE_string('dataset', 'yelp',
 tf.app.flags.DEFINE_string('model', 'resnet-34',
                            """The name of the net to train.""")
 
+tf.app.flags.DEFINE_boolean('train', True,
+                            """Whether the training procedure should be started.""")
+
+tf.app.flags.DEFINE_boolean('eval', False,
+                            """Whether the validation procedure should be started.""")
+
 tf.app.flags.DEFINE_boolean('resume', False,
                             """Whether the training should be resumed from the latest found checkpoint.""")
 
@@ -48,13 +54,13 @@ tf.app.flags.DEFINE_integer('learning_rate_decay_strategy', 0,
 tf.app.flags.DEFINE_float('weight_decay', 0.0001,
                           """The constant float L2 weight decay loss is multiplied with.""")
 
-tf.app.flags.DEFINE_integer('training_steps', 64000,
+tf.app.flags.DEFINE_integer('training_steps', 500000,
                             """Number of iterations for training.""")
 
-tf.app.flags.DEFINE_integer('batch_size', 128,
+tf.app.flags.DEFINE_integer('batch_size', 256,
                             """Size of the mini-batches used for training.""")
 
-tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.4,
+tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.01,
                           """The minimum fraction of all examples to be held in the input queue.
                           Ensures good shuffling.""")
 

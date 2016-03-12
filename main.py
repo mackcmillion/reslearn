@@ -75,18 +75,26 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     dataset.pre_graph()
 
-    training_thread = threading.Thread(target=train,
+    training_thread = None
+    evaluation_thread = None
+    if FLAGS.train:
+        training_thread = threading.Thread(target=train,
                                        args=(dataset, model, summary_path, checkpoint_path),
                                        name='training-thread')
-    evaluation_thread = threading.Thread(target=evaluate,
+    if FLAGS.eval:
+        evaluation_thread = threading.Thread(target=evaluate,
                                          args=(dataset, model, summary_path_eval, checkpoint_path),
                                          name='evaluation-thread')
 
-    training_thread.start()
-    evaluation_thread.start()
+    if FLAGS.train:
+        training_thread.start()
+    if FLAGS.eval:
+        evaluation_thread.start()
 
-    training_thread.join()
-    evaluation_thread.join()
+    if FLAGS.train:
+        training_thread.join()
+    if FLAGS.eval:
+        evaluation_thread.join()
 
     print '%s - Finished %s.' % (dt.now(), FLAGS.experiment_name)
 

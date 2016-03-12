@@ -61,10 +61,11 @@ class Yelp(Dataset):
         with open(FLAGS.yelp_training_set) as f:
             for line in f:
                 fp, lbl = line.split(',')
-                filepaths.append(fp)
-                # FIXME append all training labels
                 lbl_lst = lbl.split(' ')
-                labels.append(lbl_lst[0])
+                if lbl_lst[0] != '\n':
+                    # FIXME append all training labels
+                    filepaths.append(fp)
+                    labels.append(int(lbl_lst[0]))
 
         return filepaths, labels
 
