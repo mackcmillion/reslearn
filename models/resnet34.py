@@ -8,7 +8,7 @@ from model import ResidualModel
 class ResNet34(ResidualModel):
 
     def __init__(self):
-        super(ResNet34, self).__init__('resnet-34', ['imagenet'])
+        super(ResNet34, self).__init__('resnet-34', ['imagenet', 'yelp'])
 
     def inference(self, x, num_classes):
         builder = NetworkBuilder()
