@@ -14,7 +14,7 @@ tf.app.flags.DEFINE_string('dataset', 'yelp',
 tf.app.flags.DEFINE_string('model', 'resnet-34',
                            """The name of the net to train.""")
 
-tf.app.flags.DEFINE_boolean('train', True,
+tf.app.flags.DEFINE_boolean('train', False,
                             """Whether the training procedure should be started.""")
 
 tf.app.flags.DEFINE_boolean('eval', False,
@@ -57,7 +57,7 @@ tf.app.flags.DEFINE_float('weight_decay', 0.0001,
 tf.app.flags.DEFINE_integer('training_steps', 500000,
                             """Number of iterations for training.""")
 
-tf.app.flags.DEFINE_integer('batch_size', 256,
+tf.app.flags.DEFINE_integer('batch_size', 64,
                             """Size of the mini-batches used for training.""")
 
 tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.01,
@@ -76,7 +76,7 @@ tf.app.flags.DEFINE_integer('summary_interval', 100,
 tf.app.flags.DEFINE_integer('checkpoint_interval', 100,
                             """The number of steps after which to create a new checkpoint.""")
 
-tf.app.flags.DEFINE_integer('eval_interval_secs', 100,
+tf.app.flags.DEFINE_integer('eval_interval_secs', 1,
                             """Interval seconds in which to poll the checkpoint directory for new checkpoint files.""")
 
 tf.app.flags.DEFINE_integer('max_num_examples', 1000,
