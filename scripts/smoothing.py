@@ -2,29 +2,25 @@ import os
 
 import tensorflow as tf
 import csv
-from datetime import datetime as dt
 from collections import OrderedDict
 
 from tensorflow.python.platform import gfile
 
-from util import DATE_FORMAT
-
 tf.app.flags.DEFINE_string(
         'csv_path',
-        '/home/max/Studium/Kurse/BA2/results/csv/run_resnet_20_2016-03-06_16-34-10_test,tag_test_error_raw.csv',
+        '/home/max/Studium/Kurse/BA2/results/csv/run_resnet_20_2016-03-10_22-45-04_test,tag_test_error_raw.csv',
         """Path to the CSV file to apply moving average to.""")
 
 tf.app.flags.DEFINE_string(
     'summary_path',
-    '/home/max/Studium/Kurse/BA2/summaries',
+    '/home/max/Studium/Kurse/BA2/results/summaries',
     """Path to write the resulting summary."""
 )
 
 
 def apply_moving_average_to_csv():
 
-    now = dt.now()
-    dirname = 'smoothing' + ('_%s' % now.strftime(DATE_FORMAT))
+    dirname = 'smoothing' + ('_%s' % tf.app.flags.FLAGS.csv_path.split('/')[-1].split('.')[0])
     summary_path = os.path.join(tf.app.flags.FLAGS.summary_path, dirname)
 
     if not gfile.Exists(summary_path):

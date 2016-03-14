@@ -48,7 +48,7 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     no_dirname = True
     exp_dirname = None
-    if FLAGS.resume:
+    if FLAGS.resume or (FLAGS.eval and not FLAGS.train):
         try:
             exp_dirname = _get_latest_dir()
             no_dirname = False
