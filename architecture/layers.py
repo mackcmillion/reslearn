@@ -118,7 +118,7 @@ class FullyConnectedLayer(Layer):
         w = weight_variable([self._in_channels, self.out_channels],
                             name=self._name + '_weights',
                             n_hat=x.get_shape()[-1].value,
-                            wd=FLAGS.weight_decay)
+                            wd=FLAGS.weight_decay, conv=False)
         b = bias_variable([self._out_channels], name=self._name + '_bias', initial=0.0)
         return tf.matmul(x, w, name=self._name) + b
 

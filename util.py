@@ -13,9 +13,14 @@ def unoptimized_weight_variable(shape, name, stddev=0.1):
 # K. He - Delving Deep into Rectifiers: Surpassing Human Performance in ImageNet Classification
 # where n_hat = k**2 * d
 # with k the image size (k x k) and d the number of channels
-def weight_variable(shape, name, n_hat, wd):
-    initial = tf.truncated_normal(shape, stddev=sqrt(2.0 / n_hat))
-    var = tf.Variable(initial, name=name)
+def weight_variable(shape, name, n_hat, wd, conv=True):
+    if conv:
+        initial = tf.contrib.layers.xavier_initializer_conv2d()
+    else:
+        initial = tf.contrib.layers.xavier_initializer()
+    # initial = tf.truncated_normal(shape, stddev=sqrt(2.0 / n_hat))
+    # var = tf.Variable(initial_value=initial, name=name)
+    var = tf.get_variable(name, shape, initializer=initial)
     if wd:
         weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name=name + '_weight_loss')
         tf.add_to_collection('losses', weight_decay)
