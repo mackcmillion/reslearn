@@ -31,9 +31,9 @@ def apply_moving_average_to_csv():
     sess = tf.Session(config=tf.ConfigProto(log_device_placement=False))
 
     p = tf.placeholder(tf.float32, shape=[])
-    train_err = tf.Variable(1.0, trainable=False)
-    train_err_assign = train_err.assign(p)
-    avg_op = averaging_op(train_err, train_err_assign)
+    test_err = tf.Variable(1.0, trainable=False)
+    test_err_assign = test_err.assign(p)
+    avg_op = averaging_op(test_err, test_err_assign)
 
     summary_op = tf.merge_all_summaries()
     init_op = tf.initialize_all_variables()
@@ -59,20 +59,20 @@ def _read_csv():
     return d
 
 
-def _add_moving_average_summary(train_err):
-    train_err_avg_obj = tf.train.ExponentialMovingAverage(0.9, name='train_err_avg')
-    train_err_avg_op = train_err_avg_obj.apply([train_err])
+def _add_moving_average_summary(test_err):
+    train_err_avg_obj = tf.train.ExponentialMovingAverage(0.9, name='test_err_avg')
+    train_err_avg_op = train_err_avg_obj.apply([test_err])
 
-    averaged = train_err_avg_obj.average(train_err)
-    tf.scalar_summary('training_error_averaged', averaged)
+    averaged = train_err_avg_obj.average(test_err)
+    tf.scalar_summary('test_error_averaged', averaged)
 
     return train_err_avg_op
 
 
-def averaging_op(train_err, train_err_assign):
-    train_err_avg_op = _add_moving_average_summary(train_err)
-    with tf.control_dependencies([train_err_assign]):
-        with tf.control_dependencies([train_err_avg_op]):
+def averaging_op(train_err, test_err_assign):
+    test_err_avg_op = _add_moving_average_summary(train_err)
+    with tf.control_dependencies([test_err_assign]):
+        with tf.control_dependencies([test_err_avg_op]):
             avg_op = tf.no_op()
     return avg_op
 
