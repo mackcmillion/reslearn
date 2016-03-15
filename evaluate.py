@@ -31,16 +31,24 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
         summary_op = tf.merge_all_summaries()
         summary_writer = tf.train.SummaryWriter(summary_path, tf.get_default_graph().as_graph_def())
 
-        last = None
-        while True:
-            last = _eval_once(last, saver, read_checkpoint_path, summary_writer, top_k_op, summary_op, test_err)
-            if FLAGS.run_once or last == FLAGS.training_steps:
-                break
-            time.sleep(FLAGS.eval_interval_secs)
+        with tf.Session() as sess:
+
+            coord = tf.train.Coordinator()
+            threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+
+            last = None
+            while True:
+                last = _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, top_k_op, summary_op, test_err)
+                if FLAGS.run_once or last == FLAGS.training_steps:
+                    break
+                time.sleep(FLAGS.eval_interval_secs)
+
+            coord.request_stop()
+            coord.join(threads)
 
 
-def _eval_once(last, saver, read_checkpoint_path, summary_writer, top_k_op, summary_op, test_err):
-    with tf.Session() as sess:
+def _eval_once(sess, coord,  last, saver, read_checkpoint_path, summary_writer, top_k_op, summary_op, test_err):
+    # with tf.Session() as sess:
         # restore training progress
         global_step, ckpt = _has_new_checkpoint(read_checkpoint_path, last)
         if ckpt:
@@ -50,8 +58,8 @@ def _eval_once(last, saver, read_checkpoint_path, summary_writer, top_k_op, summ
             print '%s - No new checkpoint file found.' % dt.now()
             return global_step
 
-        coord = tf.train.Coordinator()
-        threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+        # coord = tf.train.Coordinator()
+        # threads = tf.train.start_queue_runners(sess=sess, coord=coord)
         print '%s - Started computing test error for step %i.' % (dt.now(), global_step)
         try:
             num_iter = int(math.ceil(FLAGS.max_num_examples) / FLAGS.batch_size)
@@ -72,9 +80,6 @@ def _eval_once(last, saver, read_checkpoint_path, summary_writer, top_k_op, summ
 
         except Exception as e:  # pylint: disable=broad-except
             coord.request_stop(e)
-
-        coord.request_stop()
-        coord.join(threads, stop_grace_period_secs=10)
 
         # return the current global step to track the progress
         return global_step
