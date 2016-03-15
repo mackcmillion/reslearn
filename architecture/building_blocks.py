@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from architecture.layers import conv_layer, bias_variable
+from architecture.layers import conv_layer, bias_variable, batch_normalize
 
 
 def residual_building_block(x, to_wrap, adjust_dimensions, name):
