@@ -52,6 +52,7 @@ def _projection_mapping(x, x_shape, f_shape, name):
     # TODO this is ugly. Replace with 1x1 convolution with stride 2 as soon as it's supported.
     extracted = tf.nn.max_pool(_mask_input(x), [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
     w = weight_variable([1, 1, x_shape[3].value, f_shape[3].value], name=name + '_residualWeights',
+                        # FIXME n_hat may be wrong
                         n_hat=x_shape[0].value * x_shape[1].value * x_shape[2].value,
                         wd=FLAGS.weight_decay)
     return tf.nn.conv2d(extracted, w, [1, 1, 1, 1], padding='SAME')
