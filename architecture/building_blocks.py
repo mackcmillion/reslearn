@@ -1,11 +1,12 @@
 import tensorflow as tf
 
-from architecture.layers import conv_layer
+from architecture.layers import conv_layer, bias_variable
 
 
 def residual_building_block(x, to_wrap, adjust_dimensions, name):
-    bias_init = tf.contrib.layers.xavier_initializer()
-    bias = tf.get_variable(name + '_ReLU_bias', initializer=bias_init, shape=to_wrap.get_shape())
+    b = bias_variable(shape=[to_wrap.get_shape()[3].value],
+                      name=name + '_ReLU_bias',
+                      initial=0.0)
 
     if x.get_shape() != to_wrap.get_shape():
         if adjust_dimensions == 'IDENTITY':
@@ -16,7 +17,7 @@ def residual_building_block(x, to_wrap, adjust_dimensions, name):
             raise ValueError('Unknown adjust dimensions strategy.')
 
     # TODO optionally drop ReLU here
-    return tf.nn.relu(to_wrap + x + bias, name=name + '_ResidualReLU')
+    return tf.nn.relu(to_wrap + x + b, name=name + '_ResidualReLU')
 
 
 def _identity_mapping(x, x_shape, f_shape, name):

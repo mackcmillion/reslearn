@@ -17,15 +17,17 @@ def conv_layer(x, out_channels, ksize, relu, stride, phase_train, name):
                         name=name + '_weights',
                         stddev=stddev_init,
                         wd=FLAGS.weight_decay)
-    b = bias_variable([out_channels],
-                      name=name + '_bias',
-                      initial=0.0)
 
-    x = tf.nn.conv2d(x, w, strides=[1, stride, stride, 1], padding='SAME', name=name) + b
+    x = tf.nn.conv2d(x, w, strides=[1, stride, stride, 1], padding='SAME', name=name) # + b
     x = batch_normalize(x, out_channels, phase_train, name)
 
     if relu:
-        x = tf.nn.relu(x, name=name + '_ReLU')
+        b = bias_variable([out_channels],
+                          name=name + '_bias',
+                          initial=0.0)
+        x = tf.nn.relu(x
+                       + b,
+                       name=name + '_ReLU')
 
     return x
 
