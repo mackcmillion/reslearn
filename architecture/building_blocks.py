@@ -1,45 +1,22 @@
 import tensorflow as tf
 
-from architecture.layers import ConvLayerWithReLU, ConvLayer
-from config import FLAGS
-from layers import Layer, NetworkBuilder
-from util import bias_variable, weight_variable
+from architecture.layers import conv_layer
 
 
-class BuildingBlock(Layer):
-    def __init__(self, name, in_channels, out_channels, layers, phase_train):
-        super(BuildingBlock, self).__init__(name, in_channels, out_channels, phase_train)
-        self._layers = layers
+def residual_building_block(x, to_wrap, adjust_dimensions, name):
+    bias_init = tf.contrib.layers.xavier_initializer()
+    bias = tf.get_variable(name + '_ReLU_bias', initializer=bias_init, shape=to_wrap.get_shape())
 
-    def _eval(self):
-        with tf.name_scope(self._name):
-            return self._eval_aux()
-
-    def _eval_aux(self):
-        builder = NetworkBuilder(self._layer_before)
-        for layer in self._layers:
-            builder.add_layer(layer)
-        return builder.build()
-
-
-class ResidualBuildingBlock(BuildingBlock):
-    def __init__(self, name, in_channels, out_channels, layers, adjust_dimensions, phase_train):
-        super(ResidualBuildingBlock, self).__init__(name, in_channels, out_channels, layers, phase_train)
-        assert adjust_dimensions == 'IDENTITY' or adjust_dimensions == 'PROJECTION', \
-            'Unknown adjusting strategy %s' % adjust_dimensions
+    if x.get_shape() != to_wrap.get_shape():
         if adjust_dimensions == 'IDENTITY':
-            self._adjust_dimensions = _identity_mapping
+            x = _identity_mapping(x, x.get_shape(), to_wrap.get_shape(), name)
+        elif adjust_dimensions == 'PROJECTION':
+            x = _projection_mapping(x, x.get_shape(), to_wrap.get_shape(), name)
         else:
-            self._adjust_dimensions = _projection_mapping
+            raise ValueError('Unknown adjust dimensions strategy.')
 
-    def _eval(self):
-        x = self._layer_before.eval()
-        with tf.name_scope(self._name):
-            f = self._eval_aux()
-            if x.get_shape()[1] != f.get_shape()[1]:
-                x = self._adjust_dimensions(x, x.get_shape(), f.get_shape(), self._name)
-            b = bias_variable([self._out_channels], name=self._name + '_bias', initial=0.0)
-            return tf.nn.relu(f + x + b, name=self._name + 'ResidualReLU')
+    # TODO optionally drop ReLU here
+    return tf.nn.relu(to_wrap + x + bias, name=name + '_ResidualReLU')
 
 
 def _identity_mapping(x, x_shape, f_shape, name):
@@ -50,12 +27,13 @@ def _identity_mapping(x, x_shape, f_shape, name):
 
 def _projection_mapping(x, x_shape, f_shape, name):
     # TODO this is ugly. Replace with 1x1 convolution with stride 2 as soon as it's supported.
-    extracted = tf.nn.max_pool(_mask_input(x), [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
-    w = weight_variable([1, 1, x_shape[3].value, f_shape[3].value], name=name + '_residualWeights',
-                        # FIXME n_hat may be wrong
-                        n_hat=x_shape[0].value * x_shape[1].value * x_shape[2].value,
-                        wd=FLAGS.weight_decay)
-    return tf.nn.conv2d(extracted, w, [1, 1, 1, 1], padding='SAME')
+    # extracted = tf.nn.max_pool(_mask_input(x), [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
+    # w = weight_variable([1, 1, x_shape[3].value, f_shape[3].value], name=name + '_residualWeights',
+    #                     # FIXME n_hat may be wrong
+    #                     n_hat=x_shape[0].value * x_shape[1].value * x_shape[2].value,
+    #                     wd=FLAGS.weight_decay)
+    # return tf.nn.conv2d(extracted, w, [1, 1, 1, 1], padding='SAME')
+    return x
 
 
 def _mask_input(x):
@@ -69,30 +47,28 @@ def _mask_input(x):
     return tf.mul(x, mask)
 
 
-def conv3x3_block(in_channels, out_channels, adjust_dimensions, namespace, phase_train):
+def conv3x3_block(x, in_channels, out_channels, adjust_dimensions, namespace, phase_train):
+    assert x.get_shape()[3].value == in_channels
     if in_channels != out_channels:
         assert out_channels == 2 * in_channels
         stride = 2
     else:
         stride = 1
-    return ResidualBuildingBlock(
-            namespace, in_channels, out_channels,
-            [
-                ConvLayerWithReLU(namespace + '_1', in_channels, out_channels, filter_size=3,
-                                  stride=stride, phase_train=phase_train),
-                ConvLayer(namespace + '_2', out_channels, out_channels, filter_size=3, stride=1,
-                          phase_train=phase_train)
-            ],
-            adjust_dimensions=adjust_dimensions,
-            phase_train=phase_train
-    )
+
+    with tf.name_scope(namespace):
+        f = conv_layer(x, out_channels, ksize=3, relu=True, stride=stride, phase_train=phase_train,
+                       name=namespace + '_1')
+        f = conv_layer(f, out_channels, ksize=3, relu=False, stride=1, phase_train=phase_train, name=namespace + '_2')
+
+    y = residual_building_block(x, to_wrap=f, adjust_dimensions=adjust_dimensions, name=namespace)
+    return y
 
 
-def add_n_conv3x3_blocks(builder, n, in_channels, out_channels, adjust_dimensions, namespace, phase_train):
+def add_n_conv3x3_blocks(x, n, in_channels, out_channels, adjust_dimensions, namespace, phase_train):
     assert n > 0
     # add first 3x3 layer that maybe performs downsampling
-    builder.add_layer(conv3x3_block(in_channels, out_channels, adjust_dimensions, namespace + '_1', phase_train))
+    x = conv3x3_block(x, in_channels, out_channels, adjust_dimensions, namespace, phase_train)
     # add the rest n-1 layers that keep dimensions
     for i in xrange(1, n):
-        builder.add_layer(
-            conv3x3_block(out_channels, out_channels, adjust_dimensions, namespace + ('_%i' % (i + 1)), phase_train))
+        x = conv3x3_block(x, out_channels, out_channels, adjust_dimensions, namespace + ('_%i' % (i + 1)), phase_train)
+    return x

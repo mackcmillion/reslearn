@@ -13,53 +13,18 @@ def unoptimized_weight_variable(shape, name, wd, stddev=0.1):
     return var
 
 
-# optimized weight variable initialization according to
-# K. He - Delving Deep into Rectifiers: Surpassing Human Performance in ImageNet Classification
-# where n_hat = k**2 * d
-# with k the image size (k x k) and d the number of channels
-def weight_variable(shape, name, n_hat, wd):
-    initial = tf.random_normal(shape, stddev=sqrt(2.0 / n_hat))
-    var = tf.Variable(initial_value=initial, name=name)
-    if wd:
-        weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name=name + '_weight_loss')
-        tf.add_to_collection('losses', weight_decay)
-    return var
-
-
-def bias_variable(shape, name, initial=0.1):
-    initial = tf.constant(initial, shape=shape)
-    return tf.Variable(initial, name=name)
-
-
-# batch normalization according to
-# S. Ioffe - Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift
-# def batch_normalize(x, out_channels, name):
-#     mean, variance = tf.nn.moments(x, [0, 1, 2])
-#     beta = tf.Variable(tf.constant(0.0, shape=[out_channels]), name=name + '_beta')
-#     gamma = tf.Variable(tf.constant(1.0, shape=[out_channels]), name=name + '_gamma')
-#     return tf.nn.batch_norm_with_global_normalization(x, mean, variance, beta, gamma, 0.001,
-#                                                       scale_after_normalization=True, name=name + '_batchNorm')
-# code from http://stackoverflow.com/a/34634291/2206976
-def batch_normalize(x, out_channels, phase_train, name, scope='bn', affine=True):
-    with tf.variable_scope(scope):
-        beta = tf.Variable(tf.constant(0.0, shape=[out_channels]), name=name + '_beta', trainable=True)
-        gamma = tf.Variable(tf.constant(1.0, shape=[out_channels]), name=name + '_gamma', trainable=affine)
-
-        batch_mean, batch_var = tf.nn.moments(x, [0, 1, 2], name=name + '_moments')
-        ema = tf.train.ExponentialMovingAverage(0.9)
-        ema_apply_op = ema.apply([batch_mean, batch_var])
-        ema_mean, ema_var = ema.average(batch_mean), ema.average(batch_var)
-
-        def mean_var_with_update():
-            with tf.control_dependencies([ema_apply_op]):
-                return tf.identity(batch_mean), tf.identity(batch_var)
-
-        mean, var = tf.cond(tf.constant(phase_train, shape=[], dtype=tf.bool),
-                            mean_var_with_update,
-                            lambda: (ema_mean, ema_var))
-
-        normed = tf.nn.batch_norm_with_global_normalization(x, mean, var, beta, gamma, 1e-3, affine)
-        return normed
+# def weight_variable(shape, name, n_hat, wd):
+#     initial = tf.random_normal(shape, stddev=sqrt(2.0 / n_hat))
+#     var = tf.Variable(initial_value=initial, name=name)
+#     if wd:
+#         weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name=name + '_weight_loss')
+#         tf.add_to_collection('losses', weight_decay)
+#     return var
+#
+#
+# def bias_variable(shape, name, initial=0.1):
+#     initial = tf.constant(initial, shape=shape)
+#     return tf.Variable(initial, name=name)
 
 
 def encode_one_hot(label_batch, num_labels):

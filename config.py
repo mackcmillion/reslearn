@@ -38,7 +38,7 @@ OPTIMIZER = tf.train.MomentumOptimizer
 OPTIMIZER_ARGS = {'momentum': 0.9}
 
 
-tf.app.flags.DEFINE_float('initial_learning_rate', 0.1,
+tf.app.flags.DEFINE_float('initial_learning_rate', 0.01,
                           """
                           The initial learning rate. May be decayed over time by the selected learning rate
                           decay strategy.

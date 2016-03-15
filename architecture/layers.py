@@ -1,135 +1,80 @@
-from abc import ABCMeta, abstractmethod
+import math
 
 import tensorflow as tf
 
 from config import FLAGS
-from util import weight_variable, bias_variable, batch_normalize
 
 
-class NetworkBuilder(object):
-    def __init__(self, layer_before=None):
-        self._current_layer = layer_before
+# optimized weight variable initialization according to
+# K. He - Delving Deep into Rectifiers: Surpassing Human Performance in ImageNet Classification
+# where n_hat = k**2 * d
+# with k the image size (k x k) and d the number of channels
+def conv_layer(x, out_channels, ksize, relu, stride, phase_train, name):
+    # TODO optionally adjust that
+    n_hat = ((int(x.get_shape()[1].value / stride) ** 2) * out_channels)
+    stddev_init = math.sqrt(2.0 / n_hat)
 
-    def add_layer(self, layer):
-        layer.layer_before = self._current_layer
-        self._current_layer = layer
-        return self
+    def activation_fn(x_):
+        afn = batch_normalize(x_, out_channels, phase_train=phase_train, name=name)
+        if relu:
+            return tf.nn.relu(afn)
+        return afn
 
-    def build(self):
-        return self._current_layer.eval()
-
-
-class Layer(object):
-    __metaclass__ = ABCMeta
-
-    _layer_before = None
-
-    def __init__(self, name, in_channels, out_channels, phase_train):
-        self._name = name
-        self._in_channels = in_channels
-        self._out_channels = out_channels
-        self._x = None
-        self._phase_train = phase_train
-
-    @abstractmethod
-    def _eval(self):
-        pass
-
-    def eval(self):
-        if self._x:
-            return self._x
-        # print 'eval() in ' + self._name
-        self._x = self._eval()
-        assert self._x.get_shape()[-1].value == self._out_channels
-        return self._x
-
-    @property
-    def out_channels(self):
-        return self._out_channels
-
-    @property
-    def layer_before(self):
-        return self._layer_before
-
-    @layer_before.setter
-    def layer_before(self, layer):
-        self._layer_before = layer
+    return tf.contrib.layers.convolution2d(
+            x,
+            out_channels,
+            kernel_size=(ksize, ksize),
+            activation_fn=activation_fn,
+            stride=(stride, stride),
+            weight_init=tf.random_normal_initializer(mean=0.0, stddev=stddev_init),
+            bias_init=tf.constant_initializer(0.0),
+            name=name,
+            weight_regularizer=tf.contrib.layers.l2_regularizer(FLAGS.weight_decay)
+    )
 
 
-class InputLayer(Layer):
-    def __init__(self, name, x, out_channels, phase_train):
-        super(InputLayer, self).__init__(name, None, out_channels, phase_train)
-        self._x = x
-
-    def _eval(self):
-        return self._x
-
-
-class ConvLayer(Layer):
-    def __init__(self, name, in_channels, out_channels, filter_size, stride, phase_train):
-        super(ConvLayer, self).__init__(name, in_channels, out_channels, phase_train)
-        self._filter_size = filter_size
-        self._stride = stride
-
-    def _eval(self):
-        x = self.layer_before.eval()
-        w = weight_variable(
-                [self._filter_size, self._filter_size, self._in_channels, self._out_channels],
-                name=self._name + '_weights',
-                n_hat=(int(x.get_shape()[1].value / self._stride) ** 2) * self._out_channels,
-                wd=FLAGS.weight_decay
-        )
-        return tf.nn.conv2d(x, w, strides=[1, self._stride, self._stride, 1], padding='SAME', name=self._name)
+def pooling_layer(x, pooling_func, ksize, stride, name):
+    return pooling_func(
+            x,
+            ksize=[1, ksize, ksize, 1],
+            strides=[1, stride, stride, 1],
+            padding='SAME',
+            name=name
+    )
 
 
-class ConvLayerWithReLU(ConvLayer):
-    def _eval(self):
-        b = bias_variable([self._out_channels], name=self._name + 'ReLU_bias', initial=0.0)
-        return tf.nn.relu(
-                batch_normalize(super(ConvLayerWithReLU, self)._eval(), self._out_channels, self._phase_train,
-                                self._name) + b,
-                name=self._name + 'ReLU')
+def fc_layer(x, out_channels, activation_fn, name):
+    return tf.contrib.layers.fully_connected(
+            x,
+            out_channels,
+            activation_fn=activation_fn,
+            weight_init=tf.contrib.layers.xavier_initializer(),
+            bias_init=tf.constant_initializer(0.0),
+            name=name,
+            weight_regularizer=tf.contrib.layers.l2_regularizer(FLAGS.weight_decay)
+    )
 
 
-class PoolingLayer(Layer):
-    def __init__(self, name, channels, pooling_func, filter_size, stride, phase_train):
-        super(PoolingLayer, self).__init__(name, channels, channels, phase_train)
-        self._pooling_func = pooling_func
-        self._filter_size = filter_size
-        self._stride = stride
+# batch normalization according to
+# S. Ioffe - Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift
+# code from http://stackoverflow.com/a/34634291/2206976
+def batch_normalize(x, out_channels, phase_train, name, scope='bn', affine=True):
+    with tf.variable_scope(scope):
+        beta = tf.Variable(tf.constant(0.0, shape=[out_channels]), name=name + '_beta', trainable=True)
+        gamma = tf.Variable(tf.constant(1.0, shape=[out_channels]), name=name + '_gamma', trainable=affine)
 
-    def _eval(self):
-        x = self.layer_before.eval()
-        return self._pooling_func(
-                x,
-                ksize=[1, self._filter_size, self._filter_size, 1],
-                strides=[1, self._stride, self._stride, 1],
-                padding='SAME',
-                name=self._name
-        )
+        batch_mean, batch_var = tf.nn.moments(x, [0, 1, 2], name=name + '_moments')
+        ema = tf.train.ExponentialMovingAverage(0.9)
+        ema_apply_op = ema.apply([batch_mean, batch_var])
+        ema_mean, ema_var = ema.average(batch_mean), ema.average(batch_var)
 
+        def mean_var_with_update():
+            with tf.control_dependencies([ema_apply_op]):
+                return tf.identity(batch_mean), tf.identity(batch_var)
 
-class FullyConnectedLayer(Layer):
-    def __init__(self, name, in_channels, out_channels, phase_train):
-        super(FullyConnectedLayer, self).__init__(name, in_channels, out_channels, phase_train)
+        mean, var = tf.cond(tf.constant(phase_train, shape=[], dtype=tf.bool),
+                            mean_var_with_update,
+                            lambda: (ema_mean, ema_var))
 
-    def _eval(self):
-        x = self.layer_before.eval()
-        if self._in_channels != self.layer_before.out_channels:
-            x = tf.reshape(x, [-1, self._in_channels])
-        w = weight_variable([self._in_channels, self.out_channels],
-                            name=self._name + '_weights',
-                            n_hat=x.get_shape()[-1].value,
-                            wd=FLAGS.weight_decay)
-        b = bias_variable([self._out_channels], name=self._name + '_bias', initial=0.0)
-        return tf.matmul(x, w, name=self._name) + b
-
-
-class FullyConnectedLayerWithReLU(FullyConnectedLayer):
-    def _eval(self):
-        return tf.nn.relu(super(FullyConnectedLayerWithReLU, self)._eval(), name=self._name + 'ReLU')
-
-
-class FullyConnectedLayerWithSoftmax(FullyConnectedLayer):
-    def _eval(self):
-        return tf.nn.softmax(super(FullyConnectedLayerWithSoftmax, self)._eval(), name=self._name + 'Softmax')
+        normed = tf.nn.batch_norm_with_global_normalization(x, mean, var, beta, gamma, 1e-3, affine)
+        return normed
