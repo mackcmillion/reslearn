@@ -60,14 +60,14 @@ def conv3x3_block(x, in_channels, out_channels, adjust_dimensions, namespace, ph
                        name=namespace + '_1')
         f = conv_layer(f, out_channels, ksize=3, relu=False, stride=1, phase_train=phase_train, name=namespace + '_2')
 
-    y = residual_building_block(x, to_wrap=f, adjust_dimensions=adjust_dimensions, name=namespace)
+        y = residual_building_block(x, to_wrap=f, adjust_dimensions=adjust_dimensions, name=namespace)
     return y
 
 
 def add_n_conv3x3_blocks(x, n, in_channels, out_channels, adjust_dimensions, namespace, phase_train):
     assert n > 0
     # add first 3x3 layer that maybe performs downsampling
-    x = conv3x3_block(x, in_channels, out_channels, adjust_dimensions, namespace, phase_train)
+    x = conv3x3_block(x, in_channels, out_channels, adjust_dimensions, namespace + '_1', phase_train)
     # add the rest n-1 layers that keep dimensions
     for i in xrange(1, n):
         x = conv3x3_block(x, out_channels, out_channels, adjust_dimensions, namespace + ('_%i' % (i + 1)), phase_train)
