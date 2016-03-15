@@ -3,12 +3,12 @@ import tensorflow as tf
 from architecture.layers import ConvLayerWithReLU, ConvLayer
 from config import FLAGS
 from layers import Layer, NetworkBuilder
-from util import bias_variable, unoptimized_weight_variable, weight_variable
+from util import bias_variable, weight_variable
 
 
 class BuildingBlock(Layer):
-    def __init__(self, name, in_channels, out_channels, layers):
-        super(BuildingBlock, self).__init__(name, in_channels, out_channels)
+    def __init__(self, name, in_channels, out_channels, layers, phase_train):
+        super(BuildingBlock, self).__init__(name, in_channels, out_channels, phase_train)
         self._layers = layers
 
     def _eval(self):
@@ -23,8 +23,8 @@ class BuildingBlock(Layer):
 
 
 class ResidualBuildingBlock(BuildingBlock):
-    def __init__(self, name, in_channels, out_channels, layers, adjust_dimensions):
-        super(ResidualBuildingBlock, self).__init__(name, in_channels, out_channels, layers)
+    def __init__(self, name, in_channels, out_channels, layers, adjust_dimensions, phase_train):
+        super(ResidualBuildingBlock, self).__init__(name, in_channels, out_channels, layers, phase_train)
         assert adjust_dimensions == 'IDENTITY' or adjust_dimensions == 'PROJECTION', \
             'Unknown adjusting strategy %s' % adjust_dimensions
         if adjust_dimensions == 'IDENTITY':
@@ -69,7 +69,7 @@ def _mask_input(x):
     return tf.mul(x, mask)
 
 
-def conv3x3_block(in_channels, out_channels, adjust_dimensions, namespace):
+def conv3x3_block(in_channels, out_channels, adjust_dimensions, namespace, phase_train):
     if in_channels != out_channels:
         assert out_channels == 2 * in_channels
         stride = 2
@@ -79,17 +79,20 @@ def conv3x3_block(in_channels, out_channels, adjust_dimensions, namespace):
             namespace, in_channels, out_channels,
             [
                 ConvLayerWithReLU(namespace + '_1', in_channels, out_channels, filter_size=3,
-                                  stride=stride),
-                ConvLayer(namespace + '_2', out_channels, out_channels, filter_size=3, stride=1)
+                                  stride=stride, phase_train=phase_train),
+                ConvLayer(namespace + '_2', out_channels, out_channels, filter_size=3, stride=1,
+                          phase_train=phase_train)
             ],
-            adjust_dimensions=adjust_dimensions
+            adjust_dimensions=adjust_dimensions,
+            phase_train=phase_train
     )
 
 
-def add_n_conv3x3_blocks(builder, n, in_channels, out_channels, adjust_dimensions, namespace):
+def add_n_conv3x3_blocks(builder, n, in_channels, out_channels, adjust_dimensions, namespace, phase_train):
     assert n > 0
     # add first 3x3 layer that maybe performs downsampling
-    builder.add_layer(conv3x3_block(in_channels, out_channels, adjust_dimensions, namespace + '_1'))
+    builder.add_layer(conv3x3_block(in_channels, out_channels, adjust_dimensions, namespace + '_1', phase_train))
     # add the rest n-1 layers that keep dimensions
     for i in xrange(1, n):
-        builder.add_layer(conv3x3_block(out_channels, out_channels, adjust_dimensions, namespace + ('_%i' % (i + 1))))
+        builder.add_layer(
+            conv3x3_block(out_channels, out_channels, adjust_dimensions, namespace + ('_%i' % (i + 1)), phase_train))

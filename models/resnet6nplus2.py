@@ -15,22 +15,22 @@ class ResNet6nplus2(ResidualModel):
         # in the paper, they only use identity mapping when testing on CIFAR-10
         self._adjust_dimensions = 'IDENTITY'
 
-    def inference(self, x, num_classes):
+    def inference(self, x, num_classes, phase_train):
         builder = NetworkBuilder()
 
         (builder
-         .add_layer(InputLayer('input', x, 3))
-         .add_layer(ConvLayer('conv1', 3, 16, filter_size=3, stride=1))
+         .add_layer(InputLayer('input', x, 3, phase_train))
+         .add_layer(ConvLayer('conv1', 3, 16, filter_size=3, stride=1, phase_train=phase_train))
          )
 
-        add_n_conv3x3_blocks(builder, 2 * self._n, 16, 16, self._adjust_dimensions, 'conv2')
-        add_n_conv3x3_blocks(builder, 2 * self._n, 16, 32, self._adjust_dimensions, 'conv3')
-        add_n_conv3x3_blocks(builder, 2 * self._n, 32, 64, self._adjust_dimensions, 'conv4')
+        add_n_conv3x3_blocks(builder, 2 * self._n, 16, 16, self._adjust_dimensions, 'conv2', phase_train)
+        add_n_conv3x3_blocks(builder, 2 * self._n, 16, 32, self._adjust_dimensions, 'conv3', phase_train)
+        add_n_conv3x3_blocks(builder, 2 * self._n, 32, 64, self._adjust_dimensions, 'conv4', phase_train)
 
         (builder
-         .add_layer(PoolingLayer('avg_pool', 64, tf.nn.avg_pool, filter_size=3, stride=1))
+         .add_layer(PoolingLayer('avg_pool', 64, tf.nn.avg_pool, filter_size=3, stride=1, phase_train=phase_train))
          # this last layer has no softmax since training and evaluation handle softmax internally
-         .add_layer(FullyConnectedLayer('fc', 8 * 8 * 64, num_classes))
+         .add_layer(FullyConnectedLayer('fc', 8 * 8 * 64, num_classes, phase_train))
          )
 
         return builder.build()

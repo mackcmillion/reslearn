@@ -24,11 +24,12 @@ class Layer(object):
 
     _layer_before = None
 
-    def __init__(self, name, in_channels, out_channels):
+    def __init__(self, name, in_channels, out_channels, phase_train):
         self._name = name
         self._in_channels = in_channels
         self._out_channels = out_channels
         self._x = None
+        self._phase_train = phase_train
 
     @abstractmethod
     def _eval(self):
@@ -56,8 +57,8 @@ class Layer(object):
 
 
 class InputLayer(Layer):
-    def __init__(self, name, x, out_channels):
-        super(InputLayer, self).__init__(name, None, out_channels)
+    def __init__(self, name, x, out_channels, phase_train):
+        super(InputLayer, self).__init__(name, None, out_channels, phase_train)
         self._x = x
 
     def _eval(self):
@@ -65,8 +66,8 @@ class InputLayer(Layer):
 
 
 class ConvLayer(Layer):
-    def __init__(self, name, in_channels, out_channels, filter_size, stride):
-        super(ConvLayer, self).__init__(name, in_channels, out_channels)
+    def __init__(self, name, in_channels, out_channels, filter_size, stride, phase_train):
+        super(ConvLayer, self).__init__(name, in_channels, out_channels, phase_train)
         self._filter_size = filter_size
         self._stride = stride
 
@@ -85,13 +86,14 @@ class ConvLayerWithReLU(ConvLayer):
     def _eval(self):
         b = bias_variable([self._out_channels], name=self._name + 'ReLU_bias', initial=0.0)
         return tf.nn.relu(
-                batch_normalize(super(ConvLayerWithReLU, self)._eval(), self._out_channels, self._name) + b,
+                batch_normalize(super(ConvLayerWithReLU, self)._eval(), self._out_channels, self._phase_train,
+                                self._name) + b,
                 name=self._name + 'ReLU')
 
 
 class PoolingLayer(Layer):
-    def __init__(self, name, channels, pooling_func, filter_size, stride):
-        super(PoolingLayer, self).__init__(name, channels, channels)
+    def __init__(self, name, channels, pooling_func, filter_size, stride, phase_train):
+        super(PoolingLayer, self).__init__(name, channels, channels, phase_train)
         self._pooling_func = pooling_func
         self._filter_size = filter_size
         self._stride = stride
@@ -108,8 +110,8 @@ class PoolingLayer(Layer):
 
 
 class FullyConnectedLayer(Layer):
-    def __init__(self, name, in_channels, out_channels):
-        super(FullyConnectedLayer, self).__init__(name, in_channels, out_channels)
+    def __init__(self, name, in_channels, out_channels, phase_train):
+        super(FullyConnectedLayer, self).__init__(name, in_channels, out_channels, phase_train)
 
     def _eval(self):
         x = self.layer_before.eval()

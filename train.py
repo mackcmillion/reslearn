@@ -20,7 +20,7 @@ def train(dataset, model, summary_path, checkpoint_path):
 
     # input and training procedure
     images, true_labels = dataset.training_inputs()
-    predictions = model.inference(images, dataset.num_classes)
+    predictions = model.inference(images, dataset.num_classes, True)
     loss_op = loss(predictions, true_labels)
     train_err = tf.Variable(1.0, trainable=False)
     train_err_assign = training_error(predictions, true_labels, train_err)

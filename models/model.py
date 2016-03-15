@@ -18,7 +18,7 @@ class Model(object):
         return self._name
 
     @abstractmethod
-    def inference(self, x, num_classes):
+    def inference(self, x, num_classes, phase_train):
         pass
 
 
