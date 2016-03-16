@@ -67,9 +67,9 @@ def batch_normalize(x, out_channels, phase_train, name):
     n_hat = (x.get_shape()[1].value ** 2) * out_channels
     stddev_init = math.sqrt(2.0 / n_hat)
     mean, variance = tf.nn.moments(x, [0, 1, 2])
-    beta = tf.Variable(tf.random_normal([out_channels], mean=0.0, stddev=stddev_init), name=name + '_beta',
+    beta = tf.Variable(tf.truncated_normal([out_channels], mean=0.0, stddev=stddev_init), name=name + '_beta',
                        trainable=True)
-    gamma = tf.Variable(tf.random_normal([out_channels], mean=0.0, stddev=stddev_init), name=name + '_gamma',
+    gamma = tf.Variable(tf.truncated_normal([out_channels], mean=0.0, stddev=stddev_init), name=name + '_gamma',
                         trainable=True)
     return tf.nn.batch_norm_with_global_normalization(x, mean, variance, beta, gamma, 0.001,
                                                       scale_after_normalization=True, name=name + '_batchNorm')
@@ -102,7 +102,7 @@ def weight_variable(shape, name, stddev, wd, uniform=False):
     if uniform:
         initial = tf.random_uniform(shape, -stddev, stddev)
     else:
-        initial = tf.random_normal(shape, stddev=stddev)
+        initial = tf.truncated_normal(shape, stddev=stddev)
     var = tf.Variable(initial_value=initial, name=name)
     if wd:
         weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name=name + '_weight_loss')
@@ -119,6 +119,6 @@ def bias_variable_random_init(shape, name, stddev, uniform=False):
     if uniform:
         initial = tf.random_uniform(shape, -stddev, stddev)
     else:
-        initial = tf.random_normal(shape, stddev=stddev)
+        initial = tf.truncated_normal(shape, stddev=stddev)
     var = tf.Variable(initial_value=initial, name=name)
     return var
