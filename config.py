@@ -14,7 +14,7 @@ tf.app.flags.DEFINE_string('dataset', 'cifar10',
 tf.app.flags.DEFINE_string('model', 'cifar10-resnet-20',
                            """The name of the net to train.""")
 
-tf.app.flags.DEFINE_boolean('train', True,
+tf.app.flags.DEFINE_boolean('train', False,
                             """Whether the training procedure should be started.""")
 
 tf.app.flags.DEFINE_boolean('eval', False,
@@ -38,7 +38,7 @@ OPTIMIZER = tf.train.MomentumOptimizer
 OPTIMIZER_ARGS = {'momentum': 0.9}
 # OPTIMIZER_ARGS = {'epsilon': 0.1}
 
-tf.app.flags.DEFINE_float('initial_learning_rate', 0.1,
+tf.app.flags.DEFINE_float('initial_learning_rate', 0.01,
                           """
                           The initial learning rate. May be decayed over time by the selected learning rate
                           decay strategy.

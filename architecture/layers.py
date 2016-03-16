@@ -10,7 +10,6 @@ from config import FLAGS
 # where n_hat = k**2 * d
 # with k the image size (k x k) and d the number of channels
 def conv_layer(x, out_channels, ksize, relu, stride, phase_train, name):
-    # TODO optionally adjust that
     n_hat = (int(x.get_shape()[1].value / stride) ** 2) * out_channels
     stddev_init = math.sqrt(2.0 / n_hat)
     w = weight_variable(shape=[ksize, ksize, x.get_shape()[3].value, out_channels],

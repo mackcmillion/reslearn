@@ -104,7 +104,7 @@ def _activation_summary(x):
 
 
 def loss(predictions, true_labels):
-    cross_entropy = tf.nn.softmax_cross_entropy_with_logits(predictions, true_labels)
+    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(predictions, true_labels)
     cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
     tf.add_to_collection('losses', cross_entropy_mean)
     return tf.add_n(tf.get_collection('losses'), name='total_loss')
