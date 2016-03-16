@@ -8,7 +8,7 @@ from model import ResidualModel
 class ResNet34(ResidualModel):
 
     def __init__(self):
-        super(ResNet34, self).__init__('resnet-34', ['imagenet'])
+        super(ResNet34, self).__init__('resnet-34', ['imagenet', 'yelp'])
 
     def inference(self, x, num_classes, phase_train):
         x = conv_layer(x, 64, ksize=7, relu=True, stride=2, name='conv1', phase_train=phase_train)

@@ -1,3 +1,7 @@
+import random
+
+import tensorflow as tf
+import csv
 import os
 
 from tensorflow.python.platform import gfile
@@ -7,8 +11,77 @@ from config import FLAGS
 WNID_LID_MAP = None
 
 
-def create_label_map_file(overwrite=False, num_logs=10):
+def create_label_map_file_yelp(overwrite=False, num_logs=10):
+    is_training_set = gfile.Exists(FLAGS.yelp_training_set)
+    is_validation_set = gfile.Exists(FLAGS.yelp_validation_set)
+    if is_training_set and is_validation_set:
+        print 'Labelmaps files already exist.'
+        if overwrite:
+            print 'Overwriting files...'
+            gfile.Remove(FLAGS.yelp_training_set)
+            gfile.Remove(FLAGS.yelp_validation_set)
+        else:
+            print 'Nothing to do here.'
+            return
+        print
+    elif is_training_set:
+        print 'Training labelmap file already exists. Overwriting...'
+        gfile.Remove(FLAGS.yelp_training_set)
+    elif is_validation_set:
+        print 'Validation labelmap file already exists. Overwriting...'
+        gfile.Remove(FLAGS.yelp_validation_set)
 
+    print 'Building filename list...'
+    filenames = build_filename_list(FLAGS.yelp_training_image_path)
+    photo_to_biz_id = _get_photo_biz_id_map()
+    biz_id_to_labels_train, biz_id_to_labels_validate = _get_biz_id_labels_maps()
+
+    with open(FLAGS.yelp_training_set, 'w') as training_set, open(FLAGS.yelp_validation_set, 'w') as validation_set:
+        for filename in filenames:
+            photo_id = filename.split('/')[-1]
+            if not photo_id.startswith('._'):
+                biz_id = photo_to_biz_id[photo_id.split('.')[0]]
+                if biz_id in biz_id_to_labels_train:
+                    training_set.write('%s,%s\n' % (filename, biz_id_to_labels_train[biz_id]))
+                else:
+                    validation_set.write('%s,%s\n' % (filename, biz_id_to_labels_validate[biz_id]))
+
+
+def _get_photo_biz_id_map():
+    photo_to_biz_id = {}
+    with open(FLAGS.yelp_training_photo_biz_id_path) as f:
+        csvreader = csv.DictReader(f)
+        for row in csvreader:
+            photo_to_biz_id[row['photo_id']] = row['business_id']
+    return photo_to_biz_id
+
+
+def _get_biz_id_labels_maps():
+    biz_id_to_labels = {}
+    with open(FLAGS.yelp_biz_id_label_path) as f:
+        csvreader = csv.DictReader(f)
+        for row in csvreader:
+            biz_id_to_labels[row['business_id']] = row['labels']
+
+    # Randomly split biz_id map into 2/3 training and 1/3 validation set.
+    # We have 2000 businesses, so the validation set will have 666 businesses.
+    biz_id_to_labels_validate = {}
+    for i in xrange(len(biz_id_to_labels) / 3):
+        val_biz = random.choice(biz_id_to_labels.keys())
+        val_labels = biz_id_to_labels[val_biz]
+        del biz_id_to_labels[val_biz]
+        biz_id_to_labels_validate[val_biz] = val_labels
+
+    # check if dicts are disjoint
+    for key in biz_id_to_labels:
+        assert key not in biz_id_to_labels_validate
+    for key in biz_id_to_labels_validate:
+        assert key not in biz_id_to_labels
+
+    return biz_id_to_labels, biz_id_to_labels_validate
+
+
+def create_label_map_file(overwrite=False, num_logs=10):
     if gfile.Exists(FLAGS.training_set):
         print 'Labelmap file already exists.'
         if overwrite:
@@ -20,7 +93,7 @@ def create_label_map_file(overwrite=False, num_logs=10):
         print
 
     print 'Building filename list...'
-    filenames = build_filename_list()
+    filenames = build_filename_list(FLAGS.training_images)
 
     f = open(FLAGS.training_set, 'w')
 
@@ -43,10 +116,11 @@ def create_label_map_file(overwrite=False, num_logs=10):
     f.close()
 
 
-def build_filename_list():
+def build_filename_list(*paths):
     image_files = []
-    for dirpath, _, filenames in os.walk(FLAGS.training_images):
-        image_files += [os.path.join(dirpath, filename) for filename in filenames]
+    for p in paths:
+        for dirpath, _, filenames in os.walk(p):
+            image_files += [os.path.join(dirpath, filename) for filename in filenames]
     return image_files
 
 
@@ -77,5 +151,9 @@ def _load_wnid_lid_map():
         WNID_LID_MAP[contents[0]] = (int(contents[1]), contents[2])
 
 
+def main(argv=None):  # pylint: disable=unused-argument
+    create_label_map_file_yelp(overwrite=True)
+
+
 if __name__ == '__main__':
-    create_label_map_file(overwrite=True)
+    tf.app.run()
