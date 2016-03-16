@@ -104,7 +104,7 @@ def _activation_summary(x):
 
 
 def loss(predictions, true_labels):
-    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(predictions, true_labels)
+    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(predictions, tf.to_int64(true_labels))
     cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
     tf.add_to_collection('losses', cross_entropy_mean)
     return tf.add_n(tf.get_collection('losses'), name='total_loss')
@@ -124,7 +124,7 @@ def _add_loss_summaries(total_loss):
 
 def training_error(predictions, true_labels, train_err):
     softmaxed = tf.nn.softmax(predictions)
-    correct_prediction = tf.equal(tf.argmax(softmaxed, 1), tf.argmax(true_labels, 1))
+    correct_prediction = tf.equal(tf.argmax(softmaxed, 1), tf.argmax(util.encode_one_hot(true_labels, 10), 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     train_err_op = 1 - accuracy
 
