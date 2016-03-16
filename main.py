@@ -11,13 +11,15 @@ from config import FLAGS
 from datasets.cifar10 import Cifar10
 from datasets.imagenet import ImageNet
 from evaluate import evaluate
+from models.resnet18 import ResNet18
 from models.resnet34 import ResNet34
 from models.resnet6nplus2 import CIFAR10ResNet20, CIFAR10ResNet32, CIFAR10ResNet44, CIFAR10ResNet56, CIFAR10ResNet110, \
     CIFAR10ResNet1202
 from train import train
 from util import DATE_FORMAT
 
-MODEL_DICT = {'resnet-34': ResNet34,
+MODEL_DICT = {'resnet-18': ResNet18,
+              'resnet-34': ResNet34,
               'cifar10-resnet-20': CIFAR10ResNet20,
               'cifar10-resnet-32': CIFAR10ResNet32,
               'cifar10-resnet-44': CIFAR10ResNet44,
