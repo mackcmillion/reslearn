@@ -88,9 +88,10 @@ class ImageNet(Dataset):
         # swapped cropping and flipping because flip needs image shape to be fully defined - should not make a
         # difference
         image = random_crop_to_square(image, 224)
-        image = random_flip(image)
         image = color_noise(image, *self._color_data[2:])
-        return normalize_colors(image, *self._color_data[:2])
+        image = normalize_colors(image, *self._color_data[:2])
+        image = random_flip(image)
+        return image
 
     def evaluation_inputs(self):
         # TODO implement

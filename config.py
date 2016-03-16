@@ -38,7 +38,7 @@ OPTIMIZER = tf.train.MomentumOptimizer
 OPTIMIZER_ARGS = {'momentum': 0.9}
 # OPTIMIZER_ARGS = {'epsilon': 0.1}
 
-tf.app.flags.DEFINE_float('initial_learning_rate', 0.01,
+tf.app.flags.DEFINE_float('initial_learning_rate', 0.1,
                           """
                           The initial learning rate. May be decayed over time by the selected learning rate
                           decay strategy.
@@ -58,7 +58,7 @@ tf.app.flags.DEFINE_float('weight_decay', 0.0001,
 tf.app.flags.DEFINE_integer('training_steps', 64000,
                             """Number of iterations for training.""")
 
-tf.app.flags.DEFINE_integer('batch_size', 64,
+tf.app.flags.DEFINE_integer('batch_size', 128,
                             """Size of the mini-batches used for training.""")
 
 tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.001,

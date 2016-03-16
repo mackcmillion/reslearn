@@ -43,15 +43,17 @@ def pooling_layer(x, pooling_func, ksize, stride, name):
 
 
 def fc_layer(x, out_channels, activation_fn, name):
-    n_hat = x.get_shape()[1].value
-    stddev_init = math.sqrt(2.0 / n_hat)
+    n = x.get_shape()[1].value
+    stddev_init = math.sqrt(1.0 / n)
     w = weight_variable([x.get_shape()[1].value, out_channels],
                         name=name + '_weights',
                         stddev=stddev_init,
-                        wd=FLAGS.weight_decay)
-    b = bias_variable([out_channels],
-                      name=name + '_bias',
-                      initial=0.0)
+                        wd=FLAGS.weight_decay,
+                        uniform=True)
+    b = bias_variable_random_init([out_channels],
+                                  name=name + '_bias',
+                                  stddev=stddev_init,
+                                  uniform=True)
 
     x = tf.matmul(x, w, name=name) + b
 
@@ -66,9 +68,11 @@ def fc_layer(x, out_channels, activation_fn, name):
 def batch_normalize(x, out_channels, phase_train, name):
     mean, variance = tf.nn.moments(x, [0, 1, 2])
     beta = tf.Variable(tf.zeros([out_channels]), name=name + '_beta', trainable=True)
-    gamma = tf.Variable(tf.truncated_normal([out_channels]), name=name + '_gamma', trainable=True)
+    gamma = tf.Variable(tf.constant(1.0, shape=[out_channels]), name=name + '_gamma', trainable=True)
     return tf.nn.batch_norm_with_global_normalization(x, mean, variance, beta, gamma, 0.001,
                                                       scale_after_normalization=True, name=name + '_batchNorm')
+
+
 # code from http://stackoverflow.com/a/34634291/2206976
 # def batch_normalize(x, out_channels, phase_train, name, scope='bn', affine=True):
 #     with tf.variable_scope(scope):
@@ -92,8 +96,11 @@ def batch_normalize(x, out_channels, phase_train, name):
 #         return normed
 
 
-def weight_variable(shape, name, stddev, wd):
-    initial = tf.random_normal(shape, stddev=stddev)
+def weight_variable(shape, name, stddev, wd, uniform=False):
+    if uniform:
+        initial = tf.random_uniform(shape, -stddev, stddev)
+    else:
+        initial = tf.random_normal(shape, stddev=stddev)
     var = tf.Variable(initial_value=initial, name=name)
     if wd:
         weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name=name + '_weight_loss')
@@ -104,3 +111,12 @@ def weight_variable(shape, name, stddev, wd):
 def bias_variable(shape, name, initial=0.0):
     initial = tf.constant(initial, shape=shape)
     return tf.Variable(initial, name=name)
+
+
+def bias_variable_random_init(shape, name, stddev, uniform=False):
+    if uniform:
+        initial = tf.random_uniform(shape, -stddev, stddev)
+    else:
+        initial = tf.random_normal(shape, stddev=stddev)
+    var = tf.Variable(initial_value=initial, name=name)
+    return var
