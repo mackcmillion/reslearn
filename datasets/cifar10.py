@@ -62,10 +62,10 @@ class Cifar10(Dataset):
         return image_batch, label_batch
 
     def _preprocess_for_training(self, image):
-        image = evenly_pad_zeros(image, 4)
-        image = random_flip(image)
-        image = random_crop_to_square(image, 32)
         image = normalize_colors(image, *self._color_data[:2])
+        image = random_flip(image)
+        image = evenly_pad_zeros(image, 4)
+        image = random_crop_to_square(image, 32)
         return image
 
     def _preprocess_for_evaluation(self, image):

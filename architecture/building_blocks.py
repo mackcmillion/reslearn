@@ -16,8 +16,11 @@ def residual_building_block(x, to_wrap, adjust_dimensions, name):
         else:
             raise ValueError('Unknown adjust dimensions strategy.')
 
+    # this is the residual addition
+    x += to_wrap
+
     # TODO optionally drop ReLU here
-    return tf.nn.relu(to_wrap + x
+    return tf.nn.relu(x
                       # + b
                         , name=name + '_ResidualReLU')
 
