@@ -23,7 +23,7 @@ def train(dataset, model, summary_path, checkpoint_path):
     predictions = model.inference(images, dataset.num_classes, True)
     loss_op = loss(predictions, true_labels)
     train_err = tf.Variable(1.0, trainable=False)
-    train_err_assign = training_error(predictions, true_labels, train_err)
+    train_err_assign = training_error(predictions, true_labels, dataset, train_err)
 
     global_step = 0
     saver = tf.train.Saver(tf.all_variables(), max_to_keep=None)
@@ -122,9 +122,10 @@ def _add_loss_summaries(total_loss):
     return loss_averages_op
 
 
-def training_error(predictions, true_labels, train_err):
+def training_error(predictions, true_labels, dataset, train_err):
     softmaxed = tf.nn.softmax(predictions)
-    correct_prediction = tf.equal(tf.argmax(softmaxed, 1), tf.argmax(util.encode_one_hot(true_labels, 10), 1))
+    correct_prediction = tf.equal(tf.argmax(softmaxed, 1),
+                                  tf.argmax(util.encode_one_hot(true_labels, dataset.num_classes), 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     train_err_op = 1 - accuracy
 
