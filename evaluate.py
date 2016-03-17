@@ -24,6 +24,7 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
 
         test_err = tf.placeholder(tf.float32, shape=[], name='test_err')
         # FIXME moving average not working right now since we are using different sessions
+        # FIXME implement restoring of moving average
         # test_err_avg_op = _add_validation_error_summary(val_err)
         _add_test_error_summary(test_err)
 
