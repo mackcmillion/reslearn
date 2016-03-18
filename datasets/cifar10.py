@@ -30,6 +30,9 @@ class Cifar10(Dataset):
     def evaluation_inputs(self):
         return self._inputs(False)
 
+    def loss_fn(self, predictions, true_labels):
+        return tf.nn.sparse_softmax_cross_entropy_with_logits(predictions, tf.to_int64(true_labels))
+
     def _inputs(self, is_training):
         if is_training:
             filenames = [os.path.join(FLAGS.cifar10_image_path, 'data_batch_%i.bin' % i) for i in xrange(1, 6)]
@@ -56,10 +59,6 @@ class Cifar10(Dataset):
                 shapes=[[32, 32, 3], []],
                 name='%s_example_queue' % 'training' if is_training else 'evaluation'
         )
-
-        # if is_training:
-        # label_batch = tf.cast(label_batch, tf.int64)
-        #     label_batch = util.encode_one_hot(label_batch, self.num_classes)
         return image_batch, label_batch
 
     def _preprocess_for_training(self, image):

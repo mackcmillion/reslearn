@@ -21,7 +21,7 @@ def train(dataset, model, summary_path, checkpoint_path):
     # input and training procedure
     images, true_labels = dataset.training_inputs()
     predictions = model.inference(images, dataset.num_classes, True)
-    loss_op = loss(predictions, true_labels)
+    loss_op = loss(dataset, predictions, true_labels)
     train_err = tf.Variable(1.0, trainable=False)
     train_err_assign = training_error(predictions, true_labels, dataset, train_err)
 
@@ -103,10 +103,10 @@ def _activation_summary(x):
     tf.scalar_summary(x.op.name + '/sparsity', tf.nn.zero_fraction(x))
 
 
-def loss(predictions, true_labels):
-    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(predictions, tf.to_int64(true_labels))
-    cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
-    tf.add_to_collection('losses', cross_entropy_mean)
+def loss(dataset, predictions, true_labels):
+    loss_ = dataset.loss_fn(predictions, true_labels)
+    loss_mean = tf.reduce_mean(loss_, name='loss')
+    tf.add_to_collection('losses', loss_mean)
     return tf.add_n(tf.get_collection('losses'), name='total_loss')
 
 

@@ -24,6 +24,10 @@ class Dataset(object):
     def evaluation_inputs(self):
         pass
 
+    @abstractmethod
+    def loss_fn(self, predictions, true_labels):
+        pass
+
     @property
     def name(self):
         return self._name

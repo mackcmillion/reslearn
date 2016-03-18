@@ -103,19 +103,13 @@ def main(argv=None):  # pylint: disable=unused-argument
 def _get_latest_dir():
     dirs = {}
     for f in gfile.ListDirectory(FLAGS.checkpoint_path):
-        print f
         if f.startswith(FLAGS.experiment_name):
-            print 'derp'
             split = f.split('_')
-            print split
             key = dt.strptime('_'.join(split[-2:]), DATE_FORMAT)
-            print key
             dirs[dt.strptime('_'.join(split[-2:]), DATE_FORMAT)] = f
-    print dirs
     if dirs == {}:
         raise ValueError
     maxdir = dirs[max(dirs)]
-    print maxdir
     return maxdir
 
 

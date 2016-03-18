@@ -8,13 +8,13 @@ FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('experiment_name', 'random',
                            """Identifier of the experiment run.""")
 
-tf.app.flags.DEFINE_string('dataset', 'cifar10',
+tf.app.flags.DEFINE_string('dataset', 'yelp',
                            """The dataset which to train on.""")
 
-tf.app.flags.DEFINE_string('model', 'cifar10-resnet-20',
+tf.app.flags.DEFINE_string('model', 'resnet-18',
                            """The name of the net to train.""")
 
-tf.app.flags.DEFINE_boolean('train', False,
+tf.app.flags.DEFINE_boolean('train', True,
                             """Whether the training procedure should be started.""")
 
 tf.app.flags.DEFINE_boolean('eval', False,
@@ -45,6 +45,7 @@ tf.app.flags.DEFINE_float('initial_learning_rate', 0.1,
                           decay strategy.
                           """)
 
+# TODO implement "intelligent" decay strategy
 tf.app.flags.DEFINE_integer('learning_rate_decay_strategy', 0,
                             """
                             The schedule that is used to decay the learning rate. Possible options:
@@ -59,7 +60,7 @@ tf.app.flags.DEFINE_float('weight_decay', 0.0001,
 tf.app.flags.DEFINE_integer('training_steps', 64000,
                             """Number of iterations for training.""")
 
-tf.app.flags.DEFINE_integer('batch_size', 128,
+tf.app.flags.DEFINE_integer('batch_size', 64,
                             """Size of the mini-batches used for training.""")
 
 tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.001,
@@ -75,7 +76,7 @@ tf.app.flags.DEFINE_integer('log_interval', 1,
 tf.app.flags.DEFINE_integer('summary_interval', 100,
                             """The number of steps after which to create a new summary.""")
 
-tf.app.flags.DEFINE_integer('checkpoint_interval', 100,
+tf.app.flags.DEFINE_integer('checkpoint_interval', 1,
                             """The number of steps after which to create a new checkpoint.""")
 
 tf.app.flags.DEFINE_integer('eval_interval_secs', 100,
