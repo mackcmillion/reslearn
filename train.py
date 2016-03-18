@@ -172,10 +172,10 @@ def training_op(total_loss, train_err, train_err_assign, global_step):
             tf.histogram_summary(var.op.name + '/gradients', grad)
 
     # this is not used in the paper
-    variable_averages = tf.train.ExponentialMovingAverage(0.9999, global_step)
-    variable_averages_op = variable_averages.apply(tf.trainable_variables())
+    # variable_averages = tf.train.ExponentialMovingAverage(FLAGS.variable_average_decay, global_step)
+    # variable_averages_op = variable_averages.apply(tf.trainable_variables())
 
-    with tf.control_dependencies([apply_gradient_op, variable_averages_op
+    with tf.control_dependencies([apply_gradient_op  # , variable_averages_op
                                   ]):
         train_op = tf.no_op(name='train')
 
