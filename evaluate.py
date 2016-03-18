@@ -49,7 +49,6 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
 
 
 def _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, top_k_op, summary_op, test_err):
-    # with tf.Session() as sess:
     # restore training progress
     global_step, ckpt = _has_new_checkpoint(read_checkpoint_path, last)
     if ckpt:
@@ -59,8 +58,6 @@ def _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, t
         print '%s - No new checkpoint file found.' % dt.now()
         return global_step
 
-    # coord = tf.train.Coordinator()
-    # threads = tf.train.start_queue_runners(sess=sess, coord=coord)
     print '%s - Started computing test error for step %i.' % (dt.now(), global_step)
     try:
         num_iter = int(math.ceil(FLAGS.max_num_examples) / FLAGS.batch_size)

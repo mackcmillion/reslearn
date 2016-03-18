@@ -14,10 +14,10 @@ tf.app.flags.DEFINE_string('dataset', 'cifar10',
 tf.app.flags.DEFINE_string('model', 'cifar10-resnet-20',
                            """The name of the net to train.""")
 
-tf.app.flags.DEFINE_boolean('train', False,
+tf.app.flags.DEFINE_boolean('train', True,
                             """Whether the training procedure should be started.""")
 
-tf.app.flags.DEFINE_boolean('eval', True,
+tf.app.flags.DEFINE_boolean('eval', False,
                             """Whether the validation procedure should be started.""")
 
 tf.app.flags.DEFINE_boolean('resume', False,
@@ -78,10 +78,10 @@ tf.app.flags.DEFINE_integer('log_interval', 1,
 tf.app.flags.DEFINE_integer('summary_interval', 100,
                             """The number of steps after which to create a new summary.""")
 
-tf.app.flags.DEFINE_integer('checkpoint_interval', 1,
+tf.app.flags.DEFINE_integer('checkpoint_interval', 100,
                             """The number of steps after which to create a new checkpoint.""")
 
-tf.app.flags.DEFINE_integer('eval_interval_secs', 1,
+tf.app.flags.DEFINE_integer('eval_interval_secs', 10,
                             """Interval seconds in which to poll the checkpoint directory for new checkpoint files.""")
 
 tf.app.flags.DEFINE_integer('max_num_examples', 1000,
