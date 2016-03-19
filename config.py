@@ -14,7 +14,7 @@ tf.app.flags.DEFINE_string('dataset', 'cifar10',
 tf.app.flags.DEFINE_string('model', 'cifar10-resnet-20',
                            """The name of the net to train.""")
 
-tf.app.flags.DEFINE_boolean('train', True,
+tf.app.flags.DEFINE_boolean('train', False,
                             """Whether the training procedure should be started.""")
 
 tf.app.flags.DEFINE_boolean('eval', False,
@@ -32,11 +32,6 @@ tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
                                enable residual learning but increase complexity.
                            Option C, using projections even if there is no need to adjust dimensions, is not supported.
                            """)
-
-# constants specifying training and validation behaviour
-# OPTIMIZER = tf.train.MomentumOptimizer
-# OPTIMIZER_ARGS = {'momentum': 0.1 * 0.9}
-# OPTIMIZER_ARGS = {'epsilon': 0.1}
 
 tf.app.flags.DEFINE_float('initial_learning_rate', 0.1,
                           """
@@ -61,7 +56,7 @@ tf.app.flags.DEFINE_integer('training_steps', 64000,
 tf.app.flags.DEFINE_integer('batch_size', 128,
                             """Size of the mini-batches used for training.""")
 
-tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.4,
+tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.7,
                           """The minimum fraction of all examples to be held in the input queue.
                           Ensures good shuffling.""")
 
@@ -74,7 +69,7 @@ tf.app.flags.DEFINE_integer('num_consuming_threads', 3,
 tf.app.flags.DEFINE_integer('log_interval', 1,
                             """The number of steps after which to print a log message.""")
 
-tf.app.flags.DEFINE_integer('summary_interval', 1,
+tf.app.flags.DEFINE_integer('summary_interval', 100,
                             """The number of steps after which to create a new summary.""")
 
 tf.app.flags.DEFINE_integer('checkpoint_interval', 100,
