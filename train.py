@@ -159,7 +159,7 @@ def training_op(total_loss, train_err, train_err_assign, global_step):
 
     with tf.control_dependencies([train_err_avg_op, train_err_assign]):
         with tf.control_dependencies([loss_averages_op, lr_decay_op]):
-            optimizer = tf.train.MomentumOptimizer(lr, momentum=tf.mul(lr, 0.9))
+            optimizer = tf.train.MomentumOptimizer(lr, momentum=tf.div(0.9, lr))
             grads = optimizer.compute_gradients(total_loss)
 
     apply_gradient_op = optimizer.apply_gradients(grads, global_step=global_step)

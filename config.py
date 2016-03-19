@@ -36,10 +36,10 @@ tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
 # constants specifying training and validation behaviour
 # TODO try momentum = 0.1 * 0.9 and LR = 0.1
 # OPTIMIZER = tf.train.MomentumOptimizer
-# OPTIMIZER_ARGS = {'momentum': 0.9}
+# OPTIMIZER_ARGS = {'momentum': 0.1 * 0.9}
 # OPTIMIZER_ARGS = {'epsilon': 0.1}
 
-tf.app.flags.DEFINE_float('initial_learning_rate', 0.01,
+tf.app.flags.DEFINE_float('initial_learning_rate', 0.1,
                           """
                           The initial learning rate. May be decayed over time by the selected learning rate
                           decay strategy.
