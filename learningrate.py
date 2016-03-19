@@ -15,7 +15,7 @@ def update_lr(sess, lr, global_step, train_err_avg):
 
 
 def decay_at_fixed_steps_default(lr, global_step):
-    return decay_at_fixed_steps(lr, global_step, [3, 6], 0.1)
+    return decay_at_fixed_steps(lr, global_step, [32000, 48000], 0.1)
 
 
 def decay_at_fixed_steps(lr, global_step, thresholds, decay_factor):
