@@ -11,14 +11,14 @@ tf.app.flags.DEFINE_string('experiment_name', 'random',
 tf.app.flags.DEFINE_string('dataset', 'cifar10',
                            """The dataset which to train on.""")
 
+tf.app.flags.DEFINE_string('model', 'cifar10-resnet-20',
+                           """The name of the net to train.""")
+
 tf.app.flags.DEFINE_boolean('train', False,
                             """Whether the training procedure should be started.""")
 
 tf.app.flags.DEFINE_boolean('eval', False,
                             """Whether the validation procedure should be started.""")
-
-tf.app.flags.DEFINE_string('model', 'cifar10-resnet-20',
-                           """The name of the net to train.""")
 
 tf.app.flags.DEFINE_boolean('resume', False,
                             """Whether the training should be resumed from the latest found checkpoint.""")
@@ -33,12 +33,7 @@ tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
                            Option C, using projections even if there is no need to adjust dimensions, is not supported.
                            """)
 
-# constants specifying training and validation behaviour
-OPTIMIZER = tf.train.MomentumOptimizer
-OPTIMIZER_ARGS = {'momentum': 0.9}
-
-
-tf.app.flags.DEFINE_float('initial_learning_rate', 0.01,
+tf.app.flags.DEFINE_float('initial_learning_rate', 0.1,
                           """
                           The initial learning rate. May be decayed over time by the selected learning rate
                           decay strategy.
@@ -61,9 +56,12 @@ tf.app.flags.DEFINE_integer('training_steps', 64000,
 tf.app.flags.DEFINE_integer('batch_size', 128,
                             """Size of the mini-batches used for training.""")
 
-tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.4,
+tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.7,
                           """The minimum fraction of all examples to be held in the input queue.
                           Ensures good shuffling.""")
+
+tf.app.flags.DEFINE_float('variable_average_decay', 0.9999,
+                          """Decay for the moving average applied to the training variables.""")
 
 tf.app.flags.DEFINE_integer('num_consuming_threads', 3,
                             """Number of threads consuming a filename to produce an image example.""")
@@ -77,7 +75,7 @@ tf.app.flags.DEFINE_integer('summary_interval', 100,
 tf.app.flags.DEFINE_integer('checkpoint_interval', 100,
                             """The number of steps after which to create a new checkpoint.""")
 
-tf.app.flags.DEFINE_integer('eval_interval_secs', 100,
+tf.app.flags.DEFINE_integer('eval_interval_secs', 10,
                             """Interval seconds in which to poll the checkpoint directory for new checkpoint files.""")
 
 tf.app.flags.DEFINE_integer('max_num_examples', 1000,
@@ -123,7 +121,37 @@ tf.app.flags.DEFINE_string('cifar10_image_path', os.path.join(FLAGS.data_path, '
 
 tf.app.flags.DEFINE_string('cifar10_mean_stddev_path',
                            os.path.join(FLAGS.data_path, 'cifar-10-batches-bin/mean_stddev'),
-                           """Path where to store/load precomputed mean/stddev over a whole CIFAR-10 dataset.""")
+                           """Path where to store/load precomputed mean/stddev over the whole CIFAR-10 dataset.""")
+
+# Yelp data directory and file paths
+tf.app.flags.DEFINE_string('yelp_training_image_path', os.path.join(FLAGS.data_path, 'yelp/train_photos'),
+                           """Path to training images for Yelp dataset.""")
+
+tf.app.flags.DEFINE_string('yelp_test_image_path', os.path.join(FLAGS.data_path, 'yelp/test_photos'),
+                           """Path to test images for Yelp dataset.""")
+
+tf.app.flags.DEFINE_string('yelp_training_photo_biz_id_path',
+                           os.path.join(FLAGS.data_path, 'yelp/train_photo_to_biz_ids.csv'),
+                           """Path to file mapping training photo ids to business ids.""")
+
+tf.app.flags.DEFINE_string('yelp_test_photo_biz_id_path',
+                           os.path.join(FLAGS.data_path, 'yelp/test_photo_to_biz_ids.csv'),
+                           """Path to file mapping test photo ids to business ids.""")
+
+tf.app.flags.DEFINE_string('yelp_biz_id_label_path', os.path.join(FLAGS.data_path, 'yelp/train.csv'),
+                           """Path to file mapping business ids to class labels.""")
+
+tf.app.flags.DEFINE_string('yelp_training_set', os.path.join(FLAGS.data_path, 'yelp/labelmap_train'),
+                           """Path to the file mapping each filename to its labels.
+                           These files are used for training.""")
+
+tf.app.flags.DEFINE_string('yelp_validation_set', os.path.join(FLAGS.data_path, 'yelp/labelmap_val'),
+                           """Path to the file mapping each filename to its labels.
+                           These files are used for validation.""")
+
+tf.app.flags.DEFINE_string('yelp_mean_stddev_path', os.path.join(FLAGS.data_path, 'yelp/mean_stddev'),
+                           """Path where to store/load precomputed mean/stddev over Yelp training, validation and
+                           test data.""")
 
 # target directory and file paths
 tf.app.flags.DEFINE_string('summary_path', '/home/max/Studium/Kurse/BA2/summaries',

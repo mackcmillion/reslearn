@@ -2,7 +2,7 @@ import tensorflow as tf
 from abc import ABCMeta
 
 from architecture.building_blocks import add_n_conv3x3_blocks
-from architecture.layers import NetworkBuilder, InputLayer, ConvLayer, PoolingLayer, FullyConnectedLayer
+from architecture.layers import conv_layer, pooling_layer, fc_layer
 from models.model import ResidualModel
 
 
@@ -15,25 +15,16 @@ class ResNet6nplus2(ResidualModel):
         # in the paper, they only use identity mapping when testing on CIFAR-10
         self._adjust_dimensions = 'IDENTITY'
 
-    def inference(self, x, num_classes):
-        builder = NetworkBuilder()
+    def inference(self, x, num_classes, phase_train):
+        x = conv_layer(x, 16, ksize=3, relu=True, stride=1, name='conv1', phase_train=phase_train)
 
-        (builder
-         .add_layer(InputLayer('input', x, 3))
-         .add_layer(ConvLayer('conv1', 3, 16, filter_size=3, stride=1))
-         )
+        x = add_n_conv3x3_blocks(x, 2 * self._n, 16, 16, self._adjust_dimensions, 'conv2', phase_train)
+        x = add_n_conv3x3_blocks(x, 2 * self._n, 16, 32, self._adjust_dimensions, 'conv3', phase_train)
+        x = add_n_conv3x3_blocks(x, 2 * self._n, 32, 64, self._adjust_dimensions, 'conv4', phase_train)
+        x = pooling_layer(x, tf.nn.avg_pool, ksize=3, stride=1, name='avg_pool')
+        x = fc_layer(tf.reshape(x, [-1, 8 * 8 * 64]), num_classes, activation_fn=None, name='fc')
 
-        add_n_conv3x3_blocks(builder, 2 * self._n, 16, 16, self._adjust_dimensions, 'conv2')
-        add_n_conv3x3_blocks(builder, 2 * self._n, 16, 32, self._adjust_dimensions, 'conv3')
-        add_n_conv3x3_blocks(builder, 2 * self._n, 32, 64, self._adjust_dimensions, 'conv4')
-
-        (builder
-         .add_layer(PoolingLayer('avg_pool', 64, tf.nn.avg_pool, filter_size=3, stride=1))
-         # this last layer has no softmax since training and evaluation handle softmax internally
-         .add_layer(FullyConnectedLayer('fc', 8 * 8 * 64, num_classes))
-         )
-
-        return builder.build()
+        return x
 
 
 class CIFAR10ResNet20(ResNet6nplus2):

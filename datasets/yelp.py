@@ -4,22 +4,21 @@ from tensorflow.python.platform import gfile
 import util
 from config import FLAGS
 from datasets.dataset import Dataset
-from preprocess import resize_random, random_crop_to_square, random_flip, color_noise, \
-    normalize_colors, ten_crop
-from scripts.labelmap import create_label_map_file
+from preprocess import resize_random, random_crop_to_square, random_flip, color_noise, normalize_colors
+from scripts.labelmap import create_label_map_file_yelp
 from scripts.meanstddev import compute_overall_mean_stddev
 
 
-class ImageNet(Dataset):
+class Yelp(Dataset):
+
     def __init__(self):
-        # FIXME extend to original 1000 classes of ImageNet
-        super(ImageNet, self).__init__('imagenet', 2)
+        super(Yelp, self).__init__('yelp', 9)
         self._color_data = None
 
     def pre_graph(self):
         compute_overall_mean_stddev(overwrite=False, num_threads=FLAGS.num_consuming_threads, num_logs=10)
-        self._color_data = util.load_meanstddev(FLAGS.mean_stddev_path)
-        create_label_map_file(overwrite=False)
+        self._color_data = util.load_meanstddev(FLAGS.yelp_mean_stddev_path)
+        create_label_map_file_yelp(overwrite=False)
 
     def preliminary(self):
         pass
@@ -53,17 +52,20 @@ class ImageNet(Dataset):
 
     @staticmethod
     def _load_training_labelmap():
-        if not gfile.Exists(FLAGS.training_set):
+        if not gfile.Exists(FLAGS.yelp_training_set):
             raise ValueError('Training label map file not found.')
 
         filepaths = []
         labels = []
 
-        with open(FLAGS.training_set) as f:
+        with open(FLAGS.yelp_training_set) as f:
             for line in f:
                 fp, lbl = line.split(',')
-                filepaths.append(fp)
-                labels.append(int(lbl[:-1]))
+                lbl_lst = lbl.split(' ')
+                if lbl_lst[0] != '\n':
+                    # FIXME append all training labels
+                    filepaths.append(fp)
+                    labels.append(int(lbl_lst[0]))
 
         return filepaths, labels
 
@@ -94,9 +96,4 @@ class ImageNet(Dataset):
         return image
 
     def evaluation_inputs(self):
-        # TODO implement
         pass
-
-    def _preprocess_for_evaluation(self, image):
-        image = normalize_colors(image, *self._color_data[2:])
-        return ten_crop(image)

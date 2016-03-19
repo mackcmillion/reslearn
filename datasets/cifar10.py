@@ -57,15 +57,16 @@ class Cifar10(Dataset):
                 name='%s_example_queue' % 'training' if is_training else 'evaluation'
         )
 
-        if is_training:
-            label_batch = util.encode_one_hot(label_batch, self.num_classes)
+        # if is_training:
+        # label_batch = tf.cast(label_batch, tf.int64)
+        #     label_batch = util.encode_one_hot(label_batch, self.num_classes)
         return image_batch, label_batch
 
     def _preprocess_for_training(self, image):
-        image = evenly_pad_zeros(image, 4)
-        image = random_flip(image)
-        image = random_crop_to_square(image, 32)
         image = normalize_colors(image, *self._color_data[:2])
+        image = random_flip(image)
+        image = evenly_pad_zeros(image, 4)
+        image = random_crop_to_square(image, 32)
         return image
 
     def _preprocess_for_evaluation(self, image):
