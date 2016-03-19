@@ -25,6 +25,9 @@ def train(dataset, model, summary_path, checkpoint_path):
     train_err = tf.Variable(1.0, trainable=False)
     train_err_assign = training_error(predictions, true_labels, dataset, train_err)
 
+    lr = FLAGS.initial_learning_rate
+    learning_rate = tf.placeholder(dtype=tf.float32, shape=[], name='learning_rate')
+
     global_step = 0
     saver = tf.train.Saver(tf.all_variables(), max_to_keep=None)
 
@@ -39,7 +42,7 @@ def train(dataset, model, summary_path, checkpoint_path):
             print '%s - No checkpoint found. Starting fresh run of %s.' % (dt.now(), FLAGS.experiment_name)
 
     global_step = tf.Variable(global_step, trainable=False)
-    train_op = training_op(loss_op, train_err, train_err_assign, global_step)
+    train_op, train_err_avg = training_op(loss_op, train_err, train_err_assign, learning_rate, global_step)
 
     # restore here to make sure all variables are defined before assigning them
     if ckpt and ckpt.model_checkpoint_path:
@@ -63,7 +66,7 @@ def train(dataset, model, summary_path, checkpoint_path):
 
         # measure computation time of the costly operations
         start_time = time.time()
-        _, loss_value = sess.run([train_op, loss_op])
+        _, loss_value = sess.run([train_op, loss_op], feed_dict={learning_rate: lr})
         duration = time.time() - start_time
 
         assert not math.isnan(loss_value), '%s - Model diverged with loss = NaN.' % dt.now()
@@ -74,12 +77,12 @@ def train(dataset, model, summary_path, checkpoint_path):
             examples_per_step = FLAGS.batch_size
             examples_per_sec = examples_per_step / duration
             sec_per_batch = float(duration)
-            print '%s - step %d, loss = %.2f, training error = %.2f%% (%.1f examples/sec; %.3f sec/batch)' % (
-                dt.now(), step, loss_value, sess.run(train_err) * 100, examples_per_sec, sec_per_batch)
+            print '%s - step %d, loss = %.2f, training error = %.2f%%, lr = %.3f (%.1f examples/sec; %.3f sec/batch)' \
+                  % (dt.now(), step, loss_value, sess.run(train_err) * 100, lr, examples_per_sec, sec_per_batch)
 
         # add summaries
         if step % FLAGS.summary_interval == 0:
-            summary = sess.run(summary_op)
+            summary = sess.run(summary_op, feed_dict={learning_rate: lr})
             summary_writer.add_summary(summary, step)
 
         # periodically save progress
@@ -93,6 +96,9 @@ def train(dataset, model, summary_path, checkpoint_path):
             print '%s - Step limit reached. Done training in %s.' % (
                 dt.now(), format_time_hhmmss(overall_duration))
             break
+
+        # update learning rate if necessary
+        lr = learningrate.update_lr(sess, lr, step, train_err_avg)
 
     coord.join(threads)
     sess.close()
@@ -144,22 +150,15 @@ def _add_train_err_summaries(train_err):
     return train_err_avg_op, averaged
 
 
-def training_op(total_loss, train_err, train_err_assign, global_step):
+def training_op(total_loss, train_err, train_err_assign, learning_rate, global_step):
     loss_averages_op = _add_loss_summaries(total_loss)
     train_err_avg_op, train_err_avg = _add_train_err_summaries(train_err)
 
-    lr = tf.Variable(FLAGS.initial_learning_rate, name='learning_rate', trainable=False)
-    lr_decay_op = lr.assign(
-            [
-                learningrate.decay_at_fixed_steps_default(lr, global_step),
-                learningrate.raise_at_train_err_then_decay_at_fixed_steps_default(lr, global_step, train_err_avg)
-            ][FLAGS.learning_rate_decay_strategy]
-    )
-    tf.scalar_summary('learning_rate_summary', lr)
+    tf.scalar_summary('learning_rate_summary', learning_rate)
 
     with tf.control_dependencies([train_err_avg_op, train_err_assign]):
-        with tf.control_dependencies([loss_averages_op, lr_decay_op]):
-            optimizer = tf.train.MomentumOptimizer(lr, momentum=tf.div(0.9, tf.neg(lr)))
+        with tf.control_dependencies([loss_averages_op]):
+            optimizer = tf.train.MomentumOptimizer(learning_rate, momentum=tf.mul(0.9, tf.neg(learning_rate)))
             grads = optimizer.compute_gradients(total_loss)
 
     apply_gradient_op = optimizer.apply_gradients(grads, global_step=global_step)
@@ -179,4 +178,4 @@ def training_op(total_loss, train_err, train_err_assign, global_step):
                                   ]):
         train_op = tf.no_op(name='train')
 
-    return train_op
+    return train_op, train_err_avg

@@ -23,6 +23,7 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
         saver = tf.train.Saver(tf.trainable_variables(), max_to_keep=None)
 
         test_err = tf.placeholder(tf.float32, shape=[], name='test_err')
+        # FIXME test error averaged starts at 0
         test_err_avg_op = _add_test_error_summary(test_err)
 
         with tf.control_dependencies([test_err_avg_op]):

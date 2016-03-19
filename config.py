@@ -14,7 +14,7 @@ tf.app.flags.DEFINE_string('dataset', 'cifar10',
 tf.app.flags.DEFINE_string('model', 'cifar10-resnet-20',
                            """The name of the net to train.""")
 
-tf.app.flags.DEFINE_boolean('train', False,
+tf.app.flags.DEFINE_boolean('train', True,
                             """Whether the training procedure should be started.""")
 
 tf.app.flags.DEFINE_boolean('eval', False,
@@ -34,7 +34,6 @@ tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
                            """)
 
 # constants specifying training and validation behaviour
-# TODO try momentum = 0.1 * 0.9 and LR = 0.1
 # OPTIMIZER = tf.train.MomentumOptimizer
 # OPTIMIZER_ARGS = {'momentum': 0.1 * 0.9}
 # OPTIMIZER_ARGS = {'epsilon': 0.1}
@@ -75,7 +74,7 @@ tf.app.flags.DEFINE_integer('num_consuming_threads', 3,
 tf.app.flags.DEFINE_integer('log_interval', 1,
                             """The number of steps after which to print a log message.""")
 
-tf.app.flags.DEFINE_integer('summary_interval', 100,
+tf.app.flags.DEFINE_integer('summary_interval', 1,
                             """The number of steps after which to create a new summary.""")
 
 tf.app.flags.DEFINE_integer('checkpoint_interval', 100,
