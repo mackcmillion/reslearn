@@ -4,9 +4,6 @@ from architecture.layers import conv_layer, bias_variable, batch_normalize
 
 
 def residual_building_block(x, to_wrap, adjust_dimensions, name):
-    # b = bias_variable(shape=[to_wrap.get_shape()[3].value],
-    #                   name=name + '_ReLU_bias',
-    #                   initial=0.0)
 
     if x.get_shape() != to_wrap.get_shape():
         if adjust_dimensions == 'IDENTITY':
@@ -20,14 +17,12 @@ def residual_building_block(x, to_wrap, adjust_dimensions, name):
     x += to_wrap
 
     # TODO optionally drop ReLU here
-    return tf.nn.relu(x
-                      # + b
-                        , name=name + '_ResidualReLU')
+    return tf.nn.relu(x, name=name + '_ResidualReLU')
 
 
 def _identity_mapping(x, x_shape, f_shape, name):
     # spatial resolution reduction using a simulated 1x1 max-pooling with stride 2
-    x = tf.nn.max_pool(_mask_input(x), [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
+    x = tf.nn.max_pool(_mask_input(x), [1, 2, 2, 1], [1, 2, 2, 1], padding='VALID')
     return tf.pad(x, [[0, 0], [0, 0], [0, 0], [0, f_shape[3].value - x_shape[3].value]], name=name + '_identityMap')
 
 
@@ -38,7 +33,7 @@ def _projection_mapping(x, x_shape, f_shape, name):
     #                     # FIXME n_hat may be wrong
     #                     n_hat=x_shape[0].value * x_shape[1].value * x_shape[2].value,
     #                     wd=FLAGS.weight_decay)
-    # return tf.nn.conv2d(extracted, w, [1, 1, 1, 1], padding='SAME')
+    # return tf.nn.conv2d(extracted, w, [1, 1, 1, 1], padding='VALID')
     return x
 
 

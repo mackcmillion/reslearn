@@ -21,12 +21,7 @@ def conv_layer(x, out_channels, ksize, relu, stride, phase_train, name):
     x = batch_normalize(x, out_channels, phase_train, name)
 
     if relu:
-        # b = bias_variable([out_channels],
-        #                   name=name + '_bias',
-        #                   initial=0.0)
-        x = tf.nn.relu(x
-                       # + b
-                       , name=name + '_ReLU')
+        x = tf.nn.relu(x, name=name + '_ReLU')
 
     return x
 
@@ -36,7 +31,7 @@ def pooling_layer(x, pooling_func, ksize, stride, name):
             x,
             ksize=[1, ksize, ksize, 1],
             strides=[1, stride, stride, 1],
-            padding='SAME',
+            padding='VALID',
             name=name
     )
 

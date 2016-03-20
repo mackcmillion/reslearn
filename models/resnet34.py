@@ -19,7 +19,7 @@ class ResNet34(ResidualModel):
         x = add_n_conv3x3_blocks(x, 6, 128, 256, self._adjust_dimensions, 'conv4', phase_train)
         x = add_n_conv3x3_blocks(x, 3, 256, 512, self._adjust_dimensions, 'conv5', phase_train)
 
-        x = pooling_layer(x, tf.nn.avg_pool, ksize=3, stride=1, name='avg_pool')
-        x = fc_layer(tf.reshape(x, [128, 7 * 7 * 512]), num_classes, activation_fn=None, name='fc')
+        x = pooling_layer(x, tf.nn.avg_pool, ksize=7, stride=1, name='avg_pool')
+        x = fc_layer(tf.squeeze(x), num_classes, activation_fn=None, name='fc')
 
         return x

@@ -14,7 +14,7 @@ tf.app.flags.DEFINE_string('dataset', 'cifar10',
 tf.app.flags.DEFINE_string('model', 'cifar10-resnet-20',
                            """The name of the net to train.""")
 
-tf.app.flags.DEFINE_boolean('train', False,
+tf.app.flags.DEFINE_boolean('train', True,
                             """Whether the training procedure should be started.""")
 
 tf.app.flags.DEFINE_boolean('eval', False,
