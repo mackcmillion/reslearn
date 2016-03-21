@@ -2,7 +2,7 @@ import os
 import random
 
 import tensorflow as tf
-from architecture.building_blocks import _convolve, _mask_input
+from architecture.building_blocks import _mask_input
 from tensorflow.python.platform import gfile
 from tensorflow.python.ops import control_flow_ops as cf
 
@@ -81,28 +81,33 @@ from scripts.meanstddev import _compute_overall_mean_stddev
 # if __name__ == '__main__':
 #     test_conv_simulation()
 
-    # sess = tf.InteractiveSession()
-    #
-    # x = tf.range(0, 2 * 4 * 4 * 2)
-    # x = tf.reshape(x, [2, 4, 4, 2])
-    # x = tf.cast(x, tf.float32)
-    #
-    # print x.eval()
-    #
-    # x_shape = x.get_shape().as_list()
-    # mask = [[row % 2 == 0 and column % 2 == 0 for column in xrange(x_shape[2])] for row in xrange(x_shape[1])]
-    # mask = tf.cast(tf.constant(mask, dtype=tf.bool), tf.float32)
-    #
-    #
-    # mask = tf.expand_dims(tf.expand_dims(mask, 0), 3)
-    # mask = tf.tile(mask, [x_shape[0], 1, 1, x_shape[3]])
-    # print mask
-    # print mask.eval()
-    #
-    # x_masked = tf.mul(x, mask)
-    # print x_masked.eval()
-    #
-    # print tf.nn.max_pool(x_masked, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME').eval()
+# sess = tf.InteractiveSession()
+#
+# x = tf.range(0, 2 * 4 * 4 * 2)
+# x = tf.reshape(x, [2, 4, 4, 2])
+# x = tf.cast(x, tf.float32)
+#
+# print x.eval()
+#
+# x_shape = x.get_shape().as_list()
+# mask = [[row % 2 == 0 and column % 2 == 0 for column in xrange(x_shape[2])] for row in xrange(x_shape[1])]
+# mask = tf.cast(tf.constant(mask, dtype=tf.bool), tf.float32)
+#
+#
+# mask = tf.expand_dims(tf.expand_dims(mask, 0), 3)
+# mask = tf.tile(mask, [x_shape[0], 1, 1, x_shape[3]])
+# print mask
+# print mask.eval()
+#
+# x_masked = tf.mul(x, mask)
+# print x_masked.eval()
+#
+# print tf.nn.max_pool(x_masked, [1, 2, 2, 1], [1, 2, 2, 1], padding='VALID').eval()
+#
+# padded = tf.pad(x, [[0, 0], [0, 0], [0, 0], [0, 2]])
+#
+# print
+# print padded.eval()
 
     # x = tf.reshape(x, [-1, 4])
     #

@@ -33,7 +33,7 @@ tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
                            Option C, using projections even if there is no need to adjust dimensions, is not supported.
                            """)
 
-tf.app.flags.DEFINE_float('initial_learning_rate', 0.1,
+tf.app.flags.DEFINE_float('initial_learning_rate', 0.01,
                           """
                           The initial learning rate. May be decayed over time by the selected learning rate
                           decay strategy.
