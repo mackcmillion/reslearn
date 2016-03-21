@@ -33,7 +33,7 @@ tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
                            Option C, using projections even if there is no need to adjust dimensions, is not supported.
                            """)
 
-tf.app.flags.DEFINE_float('initial_learning_rate', 0.01,
+tf.app.flags.DEFINE_float('initial_learning_rate', 0.1,
                           """
                           The initial learning rate. May be decayed over time by the selected learning rate
                           decay strategy.
@@ -50,7 +50,7 @@ tf.app.flags.DEFINE_integer('learning_rate_decay_strategy', 0,
 tf.app.flags.DEFINE_float('weight_decay', 0.0001,
                           """The constant float L2 weight decay loss is multiplied with.""")
 
-tf.app.flags.DEFINE_integer('training_steps', 64000,
+tf.app.flags.DEFINE_integer('training_steps', 80000,
                             """Number of iterations for training.""")
 
 tf.app.flags.DEFINE_integer('batch_size', 128,

@@ -158,7 +158,7 @@ def training_op(total_loss, train_err, train_err_assign, learning_rate, global_s
 
     with tf.control_dependencies([train_err_avg_op, train_err_assign]):
         with tf.control_dependencies([loss_averages_op]):
-            optimizer = tf.train.RMSPropOptimizer(learning_rate, decay=0.99, epsilon=1e-8)
+            optimizer = tf.train.MomentumOptimizer(learning_rate, momentum=tf.mul(0.9, learning_rate))
             grads = optimizer.compute_gradients(total_loss)
 
     apply_gradient_op = optimizer.apply_gradients(grads, global_step=global_step)
