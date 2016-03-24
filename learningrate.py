@@ -25,7 +25,7 @@ def decay_at_fixed_steps(lr, global_step, thresholds, decay_factor):
 
 
 def raise_at_train_err_then_decay_at_fixed_steps_default(lr, global_step, train_err):
-    return raise_at_train_err_then_decay_at_fixed_steps(lr, global_step, [32000, 48000], 0.1, train_err, 0.8, 0.1)
+    return raise_at_train_err_then_decay_at_fixed_steps(lr, global_step, [52000, 92000], 0.1, train_err, 0.76, 0.1)
 
 
 def raise_at_train_err_then_decay_at_fixed_steps(lr, global_step, thresholds, decay_factor, train_err, err_thresh,
