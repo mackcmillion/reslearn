@@ -1,19 +1,27 @@
 #!/bin/bash
 
+EXPERIMENT_NAME="resnet_56_adam_100000"
+DATASET="cifar10"
+MODEL="cifar10-resnet-56"
+
+DATA_PATH="/home/max/data"
+SUMMARY_PATH="/home/max/summaries"
+CHECKPOINT_PATH="/home/max/checkpoints"
+
 mkdir /home/max/logs
 
-echo "Started training for resnet_56..."
-
-stdbuf -oL python /home/max/reslearn/main.py --experiment_name=resnet_56 --dataset=cifar10 --model=cifar10-resnet-56 \
+echo "Started training for $EXPERIMENT_NAME..."
+stdbuf -oL python /home/max/reslearn/main.py --experiment_name=${EXPERIMENT_NAME} \
+ --dataset=${DATASET} --model=${MODEL} \
  --train \
- --data_path=/home/max/data --summary_path=/home/max/summaries --checkpoint_path=/home/max/checkpoints >/home/max/logs/resnet_56.log
+ --data_path=${DATA_PATH} --summary_path=${SUMMARY_PATH} --checkpoint_path=${CHECKPOINT_PATH} \
+ >/home/max/logs/${EXPERIMENT_NAME}.log
+echo "Finished training for $EXPERIMENT_NAME."
 
-echo "Finished training for resnet_56."
-
-echo "Started evaluation for resnet_56."
-
-stdbuf -oL python /home/max/reslearn/main.py --experiment_name=resnet_56 --dataset=cifar10 --model=cifar10-resnet-56 \
+echo "Started evaluation for $EXPERIMENT_NAME."
+stdbuf -oL python /home/max/reslearn/main.py --experiment_name=${EXPERIMENT_NAME} \
+ --dataset=${DATASET} --model=${MODEL} \
  --eval --eval_interval_secs=1 \
- --data_path=/home/max/data --summary_path=/home/max/summaries --checkpoint_path=/home/max/checkpoints >/home/max/logs/resnet_56_eval.log
-
-echo "Finished evaluation for resnet_56."
+ --data_path=${DATA_PATH} --summary_path=${SUMMARY_PATH} --checkpoint_path=${CHECKPOINT_PATH} \
+ >/home/max/logs/${EXPERIMENT_NAME}_eval.log
+echo "Finished evaluation for $EXPERIMENT_NAME."
