@@ -50,7 +50,7 @@ tf.app.flags.DEFINE_integer('learning_rate_decay_strategy', 0,
 tf.app.flags.DEFINE_float('weight_decay', 0.0001,
                           """The constant float L2 weight decay loss is multiplied with.""")
 
-tf.app.flags.DEFINE_integer('training_steps', 80000,
+tf.app.flags.DEFINE_integer('training_steps', 100000,
                             """Number of iterations for training.""")
 
 tf.app.flags.DEFINE_integer('batch_size', 128,
