@@ -30,8 +30,10 @@ def raise_at_train_err_then_decay_at_fixed_steps_default(lr, global_step, train_
 
 def raise_at_train_err_then_decay_at_fixed_steps(lr, global_step, thresholds, decay_factor, train_err, err_thresh,
                                                  raise_to):
+    global _RAISED
     if _RAISED:
         return decay_at_fixed_steps(lr, global_step, thresholds, decay_factor)
     elif train_err < err_thresh:
+        _RAISED = True
         return raise_to
     return lr
