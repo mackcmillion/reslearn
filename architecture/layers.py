@@ -21,12 +21,7 @@ def conv_layer(x, out_channels, ksize, relu, stride, phase_train, name):
     x = batch_normalize(x, out_channels, phase_train, name)
 
     if relu:
-        # b = bias_variable([out_channels],
-        #                   name=name + '_bias',
-        #                   initial=0.0)
-        x = tf.nn.relu(x
-                       # + b
-                       , name=name + '_ReLU')
+        x = tf.nn.relu(x, name=name + '_ReLU')
 
     return x
 
@@ -36,7 +31,7 @@ def pooling_layer(x, pooling_func, ksize, stride, name):
             x,
             ksize=[1, ksize, ksize, 1],
             strides=[1, stride, stride, 1],
-            padding='SAME',
+            padding='VALID',
             name=name
     )
 
@@ -50,7 +45,8 @@ def fc_layer(x, out_channels, activation_fn, name):
                         wd=FLAGS.weight_decay)
     b = bias_variable([out_channels],
                       name=name + '_bias',
-                      initial=0.0)
+                      initial=0.0,
+                      wd=FLAGS.weight_decay)
 
     x = tf.matmul(x, w, name=name) + b
 
@@ -111,9 +107,13 @@ def weight_variable(shape, name, stddev, wd, uniform=False):
     return var
 
 
-def bias_variable(shape, name, initial=0.0):
+def bias_variable(shape, name, initial, wd):
     initial = tf.constant(initial, shape=shape)
-    return tf.Variable(initial, name=name)
+    var = tf.Variable(initial, name=name)
+    if wd:
+        weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name=name + '_bias_loss')
+        tf.add_to_collection('losses', weight_decay)
+    return var
 
 
 def bias_variable_random_init(shape, name, stddev, uniform=False):

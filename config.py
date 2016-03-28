@@ -33,12 +33,6 @@ tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
                            Option C, using projections even if there is no need to adjust dimensions, is not supported.
                            """)
 
-# constants specifying training and validation behaviour
-OPTIMIZER = tf.train.AdamOptimizer
-# OPTIMIZER_ARGS = {'momentum': 0.9}
-# OPTIMIZER_ARGS = {'epsilon': 0.1}
-OPTIMIZER_ARGS = {}
-
 tf.app.flags.DEFINE_float('initial_learning_rate', 0.1,
                           """
                           The initial learning rate. May be decayed over time by the selected learning rate
@@ -57,15 +51,18 @@ tf.app.flags.DEFINE_integer('learning_rate_decay_strategy', 0,
 tf.app.flags.DEFINE_float('weight_decay', 0.0001,
                           """The constant float L2 weight decay loss is multiplied with.""")
 
-tf.app.flags.DEFINE_integer('training_steps', 64000,
+tf.app.flags.DEFINE_integer('training_steps', 100000,
                             """Number of iterations for training.""")
 
 tf.app.flags.DEFINE_integer('batch_size', 64,
                             """Size of the mini-batches used for training.""")
 
-tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.001,
+tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.7,
                           """The minimum fraction of all examples to be held in the input queue.
                           Ensures good shuffling.""")
+
+tf.app.flags.DEFINE_float('variable_average_decay', 0.9999,
+                          """Decay for the moving average applied to the training variables.""")
 
 tf.app.flags.DEFINE_integer('num_consuming_threads', 3,
                             """Number of threads consuming a filename to produce an image example.""")
@@ -79,7 +76,7 @@ tf.app.flags.DEFINE_integer('summary_interval', 100,
 tf.app.flags.DEFINE_integer('checkpoint_interval', 1,
                             """The number of steps after which to create a new checkpoint.""")
 
-tf.app.flags.DEFINE_integer('eval_interval_secs', 100,
+tf.app.flags.DEFINE_integer('eval_interval_secs', 10,
                             """Interval seconds in which to poll the checkpoint directory for new checkpoint files.""")
 
 tf.app.flags.DEFINE_integer('max_num_examples', 1000,

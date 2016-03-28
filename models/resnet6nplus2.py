@@ -17,12 +17,11 @@ class ResNet6nplus2(ResidualModel):
 
     def inference(self, x, num_classes, phase_train):
         x = conv_layer(x, 16, ksize=3, relu=True, stride=1, name='conv1', phase_train=phase_train)
-
         x = add_n_conv3x3_blocks(x, 2 * self._n, 16, 16, self._adjust_dimensions, 'conv2', phase_train)
         x = add_n_conv3x3_blocks(x, 2 * self._n, 16, 32, self._adjust_dimensions, 'conv3', phase_train)
         x = add_n_conv3x3_blocks(x, 2 * self._n, 32, 64, self._adjust_dimensions, 'conv4', phase_train)
-        x = pooling_layer(x, tf.nn.avg_pool, ksize=3, stride=1, name='avg_pool')
-        x = fc_layer(tf.reshape(x, [-1, 8 * 8 * 64]), num_classes, activation_fn=None, name='fc')
+        x = pooling_layer(x, tf.nn.avg_pool, ksize=8, stride=1, name='avg_pool')
+        x = fc_layer(tf.squeeze(x), num_classes, activation_fn=None, name='fc')
 
         return x
 
