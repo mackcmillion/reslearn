@@ -26,12 +26,12 @@ def conv_layer(x, out_channels, ksize, relu, stride, phase_train, name):
     return x
 
 
-def pooling_layer(x, pooling_func, ksize, stride, name):
+def pooling_layer(x, pooling_func, ksize, stride, name, padding='VALID'):
     return pooling_func(
             x,
             ksize=[1, ksize, ksize, 1],
             strides=[1, stride, stride, 1],
-            padding='VALID',
+            padding=padding,
             name=name
     )
 

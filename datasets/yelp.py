@@ -10,7 +10,6 @@ from scripts.meanstddev import compute_overall_mean_stddev
 
 
 class Yelp(Dataset):
-
     def __init__(self):
         super(Yelp, self).__init__('yelp', 9)
         self._color_data = None
@@ -30,17 +29,30 @@ class Yelp(Dataset):
         return self._inputs(FLAGS.yelp_validation_set, self._preprocess_for_evaluation)
 
     def loss_fn(self, predictions, true_labels):
-        true_labels = util.encode_one_hot(true_labels, self._num_classes)
-        return tf.nn.softmax_cross_entropy_with_logits(predictions, true_labels)
+        # use sigmoid cross entropy since classes are not mutually exclusive
+        return tf.nn.sigmoid_cross_entropy_with_logits(predictions, true_labels)
+
+    def training_error(self, predictions, true_labels):
+        probs = tf.sigmoid(predictions)
+        threshold = tf.constant(0.5, dtype=tf.float32, shape=predictions.get_shape())
+        thresholded_predictions = tf.greater(probs, threshold)
+        thresholded_predictions = tf.cast(thresholded_predictions, dtype=tf.float32)
+
+        f1 = util.compute_f1_score(thresholded_predictions, true_labels)
+
+        mean_f1 = tf.reduce_mean(f1)
+        mean_f1 = tf.Print(mean_f1, [thresholded_predictions, mean_f1])
+        return mean_f1, 'f1 score'
 
     def _inputs(self, setpath, fn_preprocess):
         fps, labels = self._load_labelmap(setpath)
         filepaths = tf.constant(fps)
-        labels = tf.constant(labels, dtype=tf.int32)
+        labels = tf.constant(labels, dtype=tf.float32)
 
         min_num_examples_in_queue = int(FLAGS.min_frac_examples_in_queue * len(fps))
 
-        filename_queue = tf.RandomShuffleQueue(len(fps), min_num_examples_in_queue, [tf.string, tf.int32])
+        filename_queue = tf.RandomShuffleQueue(len(fps), min_num_examples_in_queue, [tf.string, tf.float32],
+                                               shapes=[[], [self._num_classes]])
         enqueue_op = filename_queue.enqueue_many([filepaths, labels])
         qr = tf.train.QueueRunner(filename_queue, [enqueue_op])
         tf.train.add_queue_runner(qr)
@@ -53,13 +65,12 @@ class Yelp(Dataset):
                 batch_size=FLAGS.batch_size,
                 capacity=min_num_examples_in_queue + (FLAGS.num_consuming_threads + 2) * FLAGS.batch_size,
                 min_after_dequeue=min_num_examples_in_queue,
-                shapes=[[224, 224, 3], []]
+                shapes=[[224, 224, 3], [self._num_classes]]
         )
 
         return image_batch, label_batch
 
-    @staticmethod
-    def _load_labelmap(filepath):
+    def _load_labelmap(self, filepath):
         if not gfile.Exists(filepath):
             raise ValueError('Label map file not found.')
 
@@ -75,7 +86,7 @@ class Yelp(Dataset):
                 filepaths.append(fp)
                 labels.append(lbl_lst)
 
-        return filepaths, labels
+        return filepaths, util.encode_k_hot_python(labels, self._num_classes)
 
     @staticmethod
     def _read_and_preprocess_image(filename_queue, fn_preprocess):

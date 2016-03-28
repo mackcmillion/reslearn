@@ -57,7 +57,7 @@ tf.app.flags.DEFINE_integer('training_steps', 100000,
 tf.app.flags.DEFINE_integer('batch_size', 64,
                             """Size of the mini-batches used for training.""")
 
-tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.7,
+tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.001,
                           """The minimum fraction of all examples to be held in the input queue.
                           Ensures good shuffling.""")
 

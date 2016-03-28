@@ -23,7 +23,7 @@ def train(dataset, model, summary_path, checkpoint_path):
     predictions = model.inference(images, dataset.num_classes, True)
     loss_op = loss(dataset, predictions, true_labels)
     train_err = tf.Variable(1.0, trainable=False)
-    train_err_assign = training_error(predictions, true_labels, dataset, train_err)
+    train_err_assign, train_err_name = training_error(predictions, true_labels, dataset, train_err)
 
     lr = FLAGS.initial_learning_rate
     learning_rate = tf.placeholder(dtype=tf.float32, shape=[], name='learning_rate')
@@ -77,8 +77,9 @@ def train(dataset, model, summary_path, checkpoint_path):
             examples_per_step = FLAGS.batch_size
             examples_per_sec = examples_per_step / duration
             sec_per_batch = float(duration)
-            print '%s - step %d, loss = %.2f, training error = %.2f%%, lr = %.3f (%.1f examples/sec; %.3f sec/batch)' \
-                  % (dt.now(), step, loss_value, sess.run(train_err) * 100, lr, examples_per_sec, sec_per_batch)
+            print '%s - step %d, loss = %.2f, %s = %.2f%%, lr = %.3f (%.1f examples/sec; %.3f sec/batch)' \
+                  % (dt.now(), step, loss_value, train_err_name, sess.run(train_err) * 100, lr, examples_per_sec,
+                     sec_per_batch)
 
         # add summaries
         if step % FLAGS.summary_interval == 0:
@@ -129,14 +130,10 @@ def _add_loss_summaries(total_loss):
 
 
 def training_error(predictions, true_labels, dataset, train_err):
-    softmaxed = tf.nn.softmax(predictions)
-    correct_prediction = tf.equal(tf.argmax(softmaxed, 1),
-                                  tf.argmax(util.encode_one_hot(true_labels, dataset.num_classes), 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    train_err_op = 1 - accuracy
+    train_err_op, train_err_name = dataset.training_error(predictions, true_labels)
 
     train_err_assign = train_err.assign(train_err_op)
-    return train_err_assign
+    return train_err_assign, train_err_name
 
 
 def _add_train_err_summaries(train_err):

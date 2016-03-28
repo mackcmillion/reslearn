@@ -257,3 +257,22 @@ from scripts.meanstddev import _compute_overall_mean_stddev
     #     sess = tf.Session()
     #     sess.run(tf.initialize_all_variables())
     #     print sess.run(_color_noise(image))
+
+# sess = tf.InteractiveSession()
+#
+# predictions = tf.constant([[1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0], [1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0]], dtype=tf.float32)
+# true_labels = tf.constant([[1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]], dtype=tf.float32)
+#
+# true_positives = tf.equal(2.0, predictions + true_labels)
+# true_positives = tf.reduce_sum(tf.cast(true_positives, tf.float32), reduction_indices=1)
+#
+# predicted_positives = tf.reduce_sum(predictions, reduction_indices=1)
+# actual_positives = tf.reduce_sum(true_labels, reduction_indices=1)
+#
+# precision = true_positives / predicted_positives
+# recall = true_positives / actual_positives
+#
+# f1 = 2 * (precision * recall) / (precision + recall)
+#
+# print precision.eval()
+# print recall.eval()

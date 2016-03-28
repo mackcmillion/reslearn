@@ -12,7 +12,7 @@ class ResNet18(ResidualModel):
 
     def inference(self, x, num_classes, phase_train):
         x = conv_layer(x, 64, ksize=7, relu=True, stride=2, name='conv1', phase_train=phase_train)
-        x = pooling_layer(x, tf.nn.max_pool, ksize=3, stride=2, name='max_pool')
+        x = pooling_layer(x, tf.nn.max_pool, ksize=3, stride=2, name='max_pool', padding='SAME')
 
         x = add_n_conv3x3_blocks(x, 2, 64, 64, self._adjust_dimensions, 'conv2', phase_train)
         x = add_n_conv3x3_blocks(x, 2, 64, 128, self._adjust_dimensions, 'conv3', phase_train)

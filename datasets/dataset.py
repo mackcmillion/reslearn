@@ -28,6 +28,10 @@ class Dataset(object):
     def loss_fn(self, predictions, true_labels):
         pass
 
+    @abstractmethod
+    def training_error(self, predictions, true_labels):
+        pass
+
     @property
     def name(self):
         return self._name
