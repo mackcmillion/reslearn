@@ -61,7 +61,7 @@ def _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, t
 
     print '%s - Started computing test error for step %i.' % (dt.now(), global_step)
     try:
-        num_iter = int(math.ceil(FLAGS.max_num_examples) / FLAGS.batch_size)
+        num_iter = int(math.ceil((1.0 * FLAGS.max_num_examples) / FLAGS.batch_size))
         true_count = 0
         total_sample_count = num_iter * FLAGS.batch_size
         step = 0
