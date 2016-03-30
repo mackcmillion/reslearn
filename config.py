@@ -8,16 +8,16 @@ FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('experiment_name', 'random',
                            """Identifier of the experiment run.""")
 
-tf.app.flags.DEFINE_string('dataset', 'yelp',
+tf.app.flags.DEFINE_string('dataset', 'yelp-small',
                            """The dataset which to train on.""")
 
-tf.app.flags.DEFINE_string('model', 'resnet-18',
+tf.app.flags.DEFINE_string('model', 'cifar10-resnet-20',
                            """The name of the net to train.""")
 
-tf.app.flags.DEFINE_boolean('train', True,
+tf.app.flags.DEFINE_boolean('train', False,
                             """Whether the training procedure should be started.""")
 
-tf.app.flags.DEFINE_boolean('eval', False,
+tf.app.flags.DEFINE_boolean('eval', True,
                             """Whether the validation procedure should be started.""")
 
 tf.app.flags.DEFINE_boolean('resume', False,
@@ -43,7 +43,7 @@ tf.app.flags.DEFINE_float('initial_learning_rate', 0.1,
 tf.app.flags.DEFINE_integer('learning_rate_decay_strategy', 0,
                             """
                             The schedule that is used to decay the learning rate. Possible options:
-                            - 0 Divides the learning rate by 10 at 32000 and 48000 steps.
+                            - 0 Divides the learning rate by 10 at 52000 and 78000 steps.
                             - 1 Multiplies the learning rate by 10 when training error drops below 80% and then
                                 continues with the default decay schedule (Option 0)
                             """)
@@ -51,10 +51,10 @@ tf.app.flags.DEFINE_integer('learning_rate_decay_strategy', 0,
 tf.app.flags.DEFINE_float('weight_decay', 0.0001,
                           """The constant float L2 weight decay loss is multiplied with.""")
 
-tf.app.flags.DEFINE_integer('training_steps', 100000,
+tf.app.flags.DEFINE_integer('training_steps', 80000,
                             """Number of iterations for training.""")
 
-tf.app.flags.DEFINE_integer('batch_size', 64,
+tf.app.flags.DEFINE_integer('batch_size', 128,
                             """Size of the mini-batches used for training.""")
 
 tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.001,
@@ -79,7 +79,7 @@ tf.app.flags.DEFINE_integer('checkpoint_interval', 1,
 tf.app.flags.DEFINE_integer('eval_interval_secs', 10,
                             """Interval seconds in which to poll the checkpoint directory for new checkpoint files.""")
 
-tf.app.flags.DEFINE_integer('max_num_examples', 1000,
+tf.app.flags.DEFINE_integer('max_num_examples', 7300,
                             """Maximum number of examples to process in one evaluation run.""")
 
 tf.app.flags.DEFINE_boolean('run_once', False,

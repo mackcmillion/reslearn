@@ -32,6 +32,14 @@ class Dataset(object):
     def training_error(self, predictions, true_labels):
         pass
 
+    @abstractmethod
+    def eval_op(self, predictions, true_labels):
+        pass
+
+    @abstractmethod
+    def test_error(self, accumulated, total):
+        pass
+
     @property
     def name(self):
         return self._name

@@ -1,5 +1,13 @@
-# this file contains multiple evaluation metrics for multi-label classification
+# this file contains multiple evaluation metrics for single- and multi-label classification
 import tensorflow as tf
+
+from config import FLAGS
+
+
+def in_top_k(predictions, true_labels):
+    # softmax is not necessary here
+    # predictions = tf.nn.softmax(predictions, name='eval_softmax')
+    return tf.nn.in_top_k(predictions, true_labels, FLAGS.top_k)
 
 
 def f1_score(predictions, true_labels):
@@ -20,9 +28,11 @@ def _compute_precision_and_recall(predictions, true_labels):
 
 
 def hamming_loss(predictions, true_labels):
+    return tf.reduce_mean(_hamming_distance(predictions, true_labels), reduction_indices=1)
+
+
+def _hamming_distance(predictions, true_labels):
     predictions = tf.cast(predictions, tf.bool)
     true_labels = tf.cast(true_labels, tf.bool)
 
-    misclassified = tf.logical_xor(predictions, true_labels)
-    return tf.reduce_mean(tf.cast(misclassified, tf.float32), reduction_indices=1)
-
+    return tf.cast(tf.logical_xor(predictions, true_labels), tf.float32)

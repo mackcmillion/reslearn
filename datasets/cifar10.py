@@ -5,6 +5,7 @@ import tensorflow as tf
 import util
 from datasets.dataset import Dataset
 from config import FLAGS
+from metrics import in_top_k
 from preprocess import evenly_pad_zeros, random_flip, random_crop_to_square, normalize_colors
 from scripts.meanstddev import compute_overall_mean_stddev
 
@@ -39,6 +40,13 @@ class Cifar10(Dataset):
                                       tf.argmax(util.encode_one_hot(true_labels, self._num_classes), 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
         return 1 - accuracy, 'training error'
+
+    def eval_op(self, predictions, true_labels):
+        return in_top_k(predictions, true_labels)
+
+    def test_error(self, accumulated, total):
+        accuracy = (accumulated * 1.0) / total
+        return 1 - accuracy, 'test error'
 
     def _inputs(self, is_training):
         if is_training:

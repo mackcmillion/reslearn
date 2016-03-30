@@ -9,6 +9,7 @@ from tensorflow.python.platform import gfile
 
 from datasets.cifar10 import Cifar10
 from datasets.imagenet import ImageNet
+from datasets.yelp_small import YelpSmall
 from evaluate import evaluate
 from models.resnet18 import ResNet18
 from config import FLAGS
@@ -28,7 +29,7 @@ MODEL_DICT = {'resnet-18': ResNet18,
               'cifar10-resnet-110': CIFAR10ResNet110,
               'cifar10-resnet-1202': CIFAR10ResNet1202
               }
-DATASET_DICT = {'cifar10': Cifar10, 'imagenet': ImageNet, 'yelp': Yelp}
+DATASET_DICT = {'cifar10': Cifar10, 'imagenet': ImageNet, 'yelp': Yelp, 'yelp-small': YelpSmall}
 
 
 def main(argv=None):  # pylint: disable=unused-argument

@@ -77,7 +77,8 @@ def normalize_colors(image, mean, stddev):
 def single_crop(image, size):
     # workaround for getting the center square crop of an image with not fully defined shape
     image = tf.expand_dims(image, 0)
-    return tf.image.extract_glimpse(image, [size, size], [[0.0, 0.0]], centered=True, normalized=True)
+    crop = tf.image.extract_glimpse(image, [size, size], [[0.0, 0.0]], centered=True, normalized=True)
+    return tf.squeeze(crop)
 
 
 def ten_crop(image):

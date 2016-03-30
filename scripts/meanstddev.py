@@ -19,7 +19,7 @@ def compute_overall_mean_stddev(overwrite=False, num_threads=1, num_logs=10):
                                      mean_stddev_path=FLAGS.cifar10_mean_stddev_path,
                                      relative_colors=False,
                                      num_imgs=60000)
-    elif FLAGS.dataset == 'yelp':
+    elif FLAGS.dataset == 'yelp' or FLAGS.dataset == 'yelp-small':
         _compute_overall_mean_stddev(overwrite, num_threads, num_logs,
                                      filenames=yelp_build_filename_list(FLAGS.yelp_training_image_path,
                                                                         FLAGS.yelp_test_image_path),

@@ -18,7 +18,8 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
         # input and evaluation procedure
         images, true_labels = dataset.evaluation_inputs()
         predictions = model.inference(images, dataset.num_classes, False)
-        top_k_op = _in_top_k(predictions, true_labels)
+        eval_op = dataset.eval_op(predictions, true_labels)
+        test_err_op = dataset.test_error
 
         saver = tf.train.Saver(tf.trainable_variables(), max_to_keep=None)
 
@@ -39,8 +40,8 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
 
             last = None
             while True:
-                last = _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, top_k_op, summary_op,
-                                  test_err)
+                last = _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, eval_op, test_err_op,
+                                  summary_op, test_err)
                 if FLAGS.run_once or last == FLAGS.training_steps:
                     break
                 time.sleep(FLAGS.eval_interval_secs)
@@ -49,7 +50,8 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
             coord.join(threads)
 
 
-def _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, top_k_op, summary_op, test_err):
+def _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, eval_op, test_err_op, summary_op,
+               test_err):
     # restore training progress
     global_step, ckpt = _has_new_checkpoint(read_checkpoint_path, last)
     if ckpt:
@@ -61,18 +63,17 @@ def _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, t
 
     print '%s - Started computing test error for step %i.' % (dt.now(), global_step)
     try:
-        num_iter = int(math.ceil(FLAGS.max_num_examples) / FLAGS.batch_size)
-        true_count = 0
+        num_iter = int(math.ceil((1.0 * FLAGS.max_num_examples) / FLAGS.batch_size))
+        accumulated = 0.0
         total_sample_count = num_iter * FLAGS.batch_size
         step = 0
         while step < num_iter and not coord.should_stop():
-            predictions = sess.run(top_k_op)
-            true_count += numpy.sum(predictions)
+            predictions = sess.run(eval_op)
+            accumulated += numpy.sum(predictions)
             step += 1
 
-        accuracy = (true_count * 1.0) / total_sample_count
-        test_error = 1 - accuracy
-        print '%s - step %i: test error = %.2f%%' % (dt.now(), global_step, test_error * 100)
+        test_error, test_error_name = test_err_op(accumulated, total_sample_count)
+        print '%s - step %i: %s = %.2f%%' % (dt.now(), global_step, test_error_name, test_error * 100)
 
         summary = sess.run(summary_op, feed_dict={test_err: test_error})
         summary_writer.add_summary(summary, global_step)
@@ -101,12 +102,6 @@ def _has_new_checkpoint(path, last):
         return last, None
     min_global_step = min(new_files)
     return min_global_step, new_files[min_global_step]
-
-
-def _in_top_k(predictions, true_labels):
-    # softmax is not necessary here
-    # predictions = tf.nn.softmax(predictions, name='eval_softmax')
-    return tf.nn.in_top_k(predictions, true_labels, FLAGS.top_k)
 
 
 def _top_k_10crop(predictions, true_labels):

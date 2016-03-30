@@ -10,9 +10,9 @@ from scripts.labelmap import create_label_map_file_yelp
 from scripts.meanstddev import compute_overall_mean_stddev
 
 
-class Yelp(Dataset):
+class YelpSmall(Dataset):
     def __init__(self):
-        super(Yelp, self).__init__('yelp', 9)
+        super(YelpSmall, self).__init__('yelp-small', 9)
         self._color_data = None
 
     def pre_graph(self):
@@ -39,17 +39,17 @@ class Yelp(Dataset):
         thresholded_predictions = tf.greater(probs, threshold)
         thresholded_predictions = tf.cast(thresholded_predictions, dtype=tf.float32)
 
-        f1 = metrics.f1_score(thresholded_predictions, true_labels)
+        hamming = metrics.hamming_loss(predictions, true_labels)
 
-        mean_f1 = tf.reduce_mean(f1)
-        mean_f1 = tf.Print(mean_f1, [thresholded_predictions, mean_f1])
-        return mean_f1, 'f1 score'
+        mean_hamming = tf.reduce_mean(hamming)
+        mean_hamming = tf.Print(mean_hamming, [thresholded_predictions, mean_hamming])
+        return mean_hamming, 'hamming loss'
 
-    def eval_op(self, prediction, true_labels):
-        pass
+    def eval_op(self, predictions, true_labels):
+        return metrics.hamming_loss(predictions, true_labels)
 
     def test_error(self, accumulated, total):
-        pass
+        return accumulated / total, 'hamming loss'
 
     def _inputs(self, setpath, fn_preprocess):
         fps, labels = self._load_labelmap(setpath)
@@ -72,7 +72,7 @@ class Yelp(Dataset):
                 batch_size=FLAGS.batch_size,
                 capacity=min_num_examples_in_queue + (FLAGS.num_consuming_threads + 2) * FLAGS.batch_size,
                 min_after_dequeue=min_num_examples_in_queue,
-                shapes=[[224, 224, 3], [self._num_classes]]
+                shapes=[[32, 32, 3], [self._num_classes]]
         )
 
         return image_batch, label_batch
@@ -114,10 +114,10 @@ class Yelp(Dataset):
         return [processed_img, label]
 
     def _preprocess_for_training(self, image):
-        image = resize_random(image, 256, 480)
+        image = resize_random(image, 32, 66)
         # swapped cropping and flipping because flip needs image shape to be fully defined - should not make a
         # difference
-        image = random_crop_to_square(image, 224)
+        image = random_crop_to_square(image, 32)
         image = color_noise(image, *self._color_data[2:])
         image = normalize_colors(image, *self._color_data[:2])
         image = random_flip(image)
@@ -125,7 +125,7 @@ class Yelp(Dataset):
 
     # TODO implement better evaluation preprocessing
     def _preprocess_for_evaluation(self, image):
-        image = resize_random(image, 256, 480)
-        image = single_crop(image, 224)
+        image = resize_random(image, 32, 66)
+        image = single_crop(image, 32)
         image = normalize_colors(image, *self._color_data[:2])
         return image

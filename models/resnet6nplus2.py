@@ -10,7 +10,7 @@ class ResNet6nplus2(ResidualModel):
     __metaclass__ = ABCMeta
 
     def __init__(self, name, n):
-        super(ResNet6nplus2, self).__init__(name, ['cifar10'])
+        super(ResNet6nplus2, self).__init__(name, ['cifar10', 'yelp-small'])
         self._n = n
         # in the paper, they only use identity mapping when testing on CIFAR-10
         self._adjust_dimensions = 'IDENTITY'
