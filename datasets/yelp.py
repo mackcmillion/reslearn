@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 
+import metrics
 import util
 from config import FLAGS
 from datasets.dataset import Dataset
@@ -38,7 +39,7 @@ class Yelp(Dataset):
         thresholded_predictions = tf.greater(probs, threshold)
         thresholded_predictions = tf.cast(thresholded_predictions, dtype=tf.float32)
 
-        f1 = util.compute_f1_score(thresholded_predictions, true_labels)
+        f1 = metrics.f1_score(thresholded_predictions, true_labels)
 
         mean_f1 = tf.reduce_mean(f1)
         mean_f1 = tf.Print(mean_f1, [thresholded_predictions, mean_f1])

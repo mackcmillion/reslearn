@@ -1,5 +1,3 @@
-from math import sqrt
-
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 
@@ -30,23 +28,6 @@ def encode_k_hot_python(labels, num_labels):
             instance_k_hot[label] = 1.0
         k_hot_array.append(instance_k_hot)
     return k_hot_array
-
-
-def compute_f1_score(predictions, true_labels):
-    precision, recall = _compute_precision_and_recall(predictions, true_labels)
-    return 2 * (precision * recall) / (precision + recall)
-
-
-def _compute_precision_and_recall(predictions, true_labels):
-    true_positives = tf.equal(2.0, predictions + true_labels)
-    true_positives = tf.reduce_sum(tf.cast(true_positives, tf.float32), reduction_indices=1)
-
-    predicted_positives = tf.reduce_sum(predictions, reduction_indices=1)
-    actual_positives = tf.reduce_sum(true_labels, reduction_indices=1)
-
-    precision = true_positives / predicted_positives
-    recall = true_positives / actual_positives
-    return precision, recall
 
 
 def format_time_hhmmss(timediff):
