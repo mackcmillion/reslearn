@@ -9,6 +9,7 @@ import numpy
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 
+import util
 from config import FLAGS
 from util import extract_global_step
 
@@ -18,7 +19,8 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
         # input and evaluation procedure
         images, true_labels = dataset.evaluation_inputs()
         predictions = model.inference(images, dataset.num_classes, False)
-        top_k_op = _in_top_k(predictions, true_labels)
+        # top_k_op = _in_top_k(predictions, true_labels)
+        top_k_op = _test_error(predictions, true_labels, dataset)
 
         saver = tf.train.Saver(tf.trainable_variables(), max_to_keep=None)
 
@@ -107,6 +109,13 @@ def _in_top_k(predictions, true_labels):
     # softmax is not necessary here
     # predictions = tf.nn.softmax(predictions, name='eval_softmax')
     return tf.nn.in_top_k(predictions, true_labels, FLAGS.top_k)
+
+
+def _test_error(predictions, true_labels, dataset):
+    softmaxed = tf.nn.softmax(predictions)
+    correct_prediction = tf.equal(tf.argmax(softmaxed, 1),
+                                  tf.argmax(util.encode_one_hot(true_labels, dataset.num_classes), 1))
+    return tf.cast(correct_prediction, tf.float32)
 
 
 def _top_k_10crop(predictions, true_labels):
