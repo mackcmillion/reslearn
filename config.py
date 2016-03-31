@@ -17,7 +17,7 @@ tf.app.flags.DEFINE_string('model', 'cifar10-resnet-20',
 tf.app.flags.DEFINE_boolean('train', False,
                             """Whether the training procedure should be started.""")
 
-tf.app.flags.DEFINE_boolean('eval', True,
+tf.app.flags.DEFINE_boolean('eval', False,
                             """Whether the validation procedure should be started.""")
 
 tf.app.flags.DEFINE_boolean('resume', False,
@@ -57,7 +57,7 @@ tf.app.flags.DEFINE_integer('training_steps', 80000,
 tf.app.flags.DEFINE_integer('batch_size', 128,
                             """Size of the mini-batches used for training.""")
 
-tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.001,
+tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.01,
                           """The minimum fraction of all examples to be held in the input queue.
                           Ensures good shuffling.""")
 
@@ -73,7 +73,7 @@ tf.app.flags.DEFINE_integer('log_interval', 1,
 tf.app.flags.DEFINE_integer('summary_interval', 100,
                             """The number of steps after which to create a new summary.""")
 
-tf.app.flags.DEFINE_integer('checkpoint_interval', 1,
+tf.app.flags.DEFINE_integer('checkpoint_interval', 100,
                             """The number of steps after which to create a new checkpoint.""")
 
 tf.app.flags.DEFINE_integer('eval_interval_secs', 10,
