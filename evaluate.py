@@ -19,8 +19,7 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
         # input and evaluation procedure
         images, true_labels = dataset.evaluation_inputs()
         predictions = model.inference(images, dataset.num_classes, False)
-        # top_k_op = _in_top_k(predictions, true_labels)
-        top_k_op = _test_error(predictions, true_labels, dataset)
+        top_k_op = _in_top_k(predictions, true_labels)
 
         saver = tf.train.Saver(tf.trainable_variables(), max_to_keep=None)
 
