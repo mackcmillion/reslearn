@@ -42,7 +42,6 @@ class Yelp(Dataset):
         f1 = metrics.f1_score(thresholded_predictions, true_labels)
 
         mean_f1 = tf.reduce_mean(f1)
-        mean_f1 = tf.Print(mean_f1, [thresholded_predictions, mean_f1])
         return mean_f1, 'f1 score'
 
     def eval_op(self, prediction, true_labels):

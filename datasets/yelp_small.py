@@ -39,10 +39,9 @@ class YelpSmall(Dataset):
         thresholded_predictions = tf.greater(probs, threshold)
         thresholded_predictions = tf.cast(thresholded_predictions, dtype=tf.float32)
 
-        hamming = metrics.hamming_loss(predictions, true_labels)
+        hamming = metrics.hamming_loss(thresholded_predictions, true_labels)
 
         mean_hamming = tf.reduce_mean(hamming)
-        mean_hamming = tf.Print(mean_hamming, [thresholded_predictions, mean_hamming])
         return mean_hamming, 'hamming loss'
 
     def eval_op(self, predictions, true_labels):
