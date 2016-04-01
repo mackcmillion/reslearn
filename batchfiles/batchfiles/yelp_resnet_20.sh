@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 EXPERIMENT_NAME="yelp_resnet_20_adam_80000"
-DATASET="yelp"
+DATASET="yelp-small"
 MODEL="cifar10-resnet-20"
 
 DATA_PATH="/home/max/data"
