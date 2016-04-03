@@ -77,3 +77,51 @@ def extract_global_step(path):
 
 
 DATE_FORMAT = '%Y-%m-%d_%H-%M-%S'
+
+
+def _get_lower_triangular_mask(batch_size, num_classes):
+    indices = tf.range(0, num_classes)
+    indices = tf.expand_dims(tf.expand_dims(indices, 0), 0)
+    indices_matrix = tf.tile(indices, [batch_size, num_classes, 1])
+    indices_matrix_transposed = tf.transpose(indices_matrix, [0, 2, 1])
+
+    return tf.less_equal(indices_matrix, indices_matrix_transposed)
+
+
+def mask_lower_triangular(boolean_matrix):
+    shape = boolean_matrix.get_shape().as_list()
+    lower_triangular = _get_lower_triangular_mask(shape[0], shape[1])
+
+    return tf.logical_and(boolean_matrix, lower_triangular)
+
+
+def fan_out_to_matrix(vectorbatch):
+    matrix = tf.expand_dims(vectorbatch, 1)
+    matrix = tf.tile(matrix, [1, vectorbatch.get_shape()[1].value, 1])
+    return matrix, tf.transpose(matrix, [0, 2, 1])
+
+
+def mll_error(predictions, true_labels):
+    num_classes = true_labels.get_shape()[1].value
+    true_labels_bool = tf.cast(true_labels, tf.bool)
+
+    num_positives = tf.reduce_sum(true_labels, [1])
+    num_negatives = num_classes - num_positives
+    normalizing_factor = 1.0 / (num_positives * num_negatives)
+
+    # trick to compute a mask that masks out all elements not satisfying
+    # (k, l) in Y_i x notY_i
+    tl_matrix, tl_matrix_transposed = fan_out_to_matrix(true_labels_bool)
+    setproduct = tf.logical_xor(tl_matrix, tl_matrix_transposed)
+    y_x_noty_mask = tf.logical_and(setproduct, tl_matrix)
+
+    pred_matrix, pred_matrix_transposed = fan_out_to_matrix(predictions)
+
+    def op_on_pred_pair(matrix, matrix_transposed):
+        return tf.exp(tf.neg(matrix - matrix_transposed))
+
+    valid_vals = tf.mul(op_on_pred_pair(pred_matrix, pred_matrix_transposed), tf.cast(y_x_noty_mask, tf.float32))
+    summed_error = tf.reduce_sum(valid_vals, [1, 2])
+    normalized_error = normalizing_factor * summed_error
+
+    return tf.reduce_sum(normalized_error)

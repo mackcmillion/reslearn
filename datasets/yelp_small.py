@@ -30,13 +30,11 @@ class YelpSmall(Dataset):
         return self._inputs(FLAGS.yelp_validation_set, self._preprocess_for_evaluation)
 
     def loss_fn(self, predictions, true_labels):
-        # use sigmoid cross entropy since classes are not mutually exclusive
-        return tf.nn.sigmoid_cross_entropy_with_logits(predictions, true_labels)
+        return util.mll_error(predictions, true_labels)
 
     def training_error(self, predictions, true_labels):
-        probs = tf.sigmoid(predictions)
-        threshold = tf.constant(0.5, dtype=tf.float32, shape=predictions.get_shape())
-        thresholded_predictions = tf.greater(probs, threshold)
+        threshold = tf.constant(0.0, dtype=tf.float32, shape=predictions.get_shape())
+        thresholded_predictions = tf.greater(predictions, threshold)
         thresholded_predictions = tf.cast(thresholded_predictions, dtype=tf.float32)
 
         hamming = metrics.hamming_loss(thresholded_predictions, true_labels)
@@ -89,8 +87,10 @@ class YelpSmall(Dataset):
                 lbl_lst = lbl.split(' ')
                 lbl_lst = map(int, lbl_lst) if lbl_lst != ['\n'] else []
 
-                filepaths.append(fp)
-                labels.append(lbl_lst)
+                # FIXME bp-mll error fn requires empty label sets and full label sets to be excluded
+                if lbl_lst and len(lbl_lst) < self._num_classes:
+                    filepaths.append(fp)
+                    labels.append(lbl_lst)
 
         return filepaths, util.encode_k_hot_python(labels, self._num_classes)
 

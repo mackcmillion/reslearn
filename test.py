@@ -1,14 +1,4 @@
-import os
-import random
-
 import tensorflow as tf
-from architecture.building_blocks import _mask_input
-from tensorflow.python.platform import gfile
-from tensorflow.python.ops import control_flow_ops as cf
-
-from config import FLAGS
-from scripts.meanstddev import _compute_overall_mean_stddev
-
 
 # image = tf.constant([[1, 2], [3, 4]], dtype=tf.float32)
 # print image.eval()
@@ -259,24 +249,25 @@ from scripts.meanstddev import _compute_overall_mean_stddev
     #     print sess.run(_color_noise(image))
 
 # sess = tf.InteractiveSession()
-
-# predictions = tf.constant([[1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0]], dtype=tf.float32)
-# true_labels = tf.constant([[1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]], dtype=tf.float32)
-
-import tensorflow as tf
-
-a = tf.constant([27, 35, 8], dtype=tf.int32, shape=[3], name='a')
-b = tf.constant([15, 7, 34], dtype=tf.int32, shape=[3], name='b')
-
-c = tf.add(a, b)
+#
+# predictions = tf.constant([[1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]], dtype=tf.float32)
+# true_labels = tf.constant([[0.0, 1.0, 0.0, 1.0], [0.0, 1.0, 1.0, 1.0]], dtype=tf.float32)
 
 
-sess = tf.Session()
-writer = tf.train.SummaryWriter('/home/max/Studium/Kurse/BA2/tex/summaries', sess.graph_def)
-result = sess.run(c)
-print c
-print result
-sess.close()
+# import tensorflow as tf
+#
+# a = tf.constant([27, 35, 8], dtype=tf.int32, shape=[3], name='a')
+# b = tf.constant([15, 7, 34], dtype=tf.int32, shape=[3], name='b')
+#
+# c = tf.add(a, b)
+#
+#
+# sess = tf.Session()
+# writer = tf.train.SummaryWriter('/home/max/Studium/Kurse/BA2/tex/summaries', sess.graph_def)
+# result = sess.run(c)
+# print c
+# print result
+# sess.close()
 
 # predictions = tf.cast(predictions, tf.bool)
 # true_labels = tf.cast(true_labels, tf.bool)
