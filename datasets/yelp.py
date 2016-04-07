@@ -30,25 +30,23 @@ class Yelp(Dataset):
         return self._inputs(FLAGS.yelp_validation_set, self._preprocess_for_evaluation)
 
     def loss_fn(self, predictions, true_labels):
-        # use sigmoid cross entropy since classes are not mutually exclusive
-        return tf.nn.sigmoid_cross_entropy_with_logits(predictions, true_labels)
+        return util.mll_error(predictions, true_labels)
 
     def training_error(self, predictions, true_labels):
-        probs = tf.sigmoid(predictions)
-        threshold = tf.constant(0.5, dtype=tf.float32, shape=predictions.get_shape())
-        thresholded_predictions = tf.greater(probs, threshold)
+        threshold = tf.constant(0.0, dtype=tf.float32, shape=predictions.get_shape())
+        thresholded_predictions = tf.greater(predictions, threshold)
         thresholded_predictions = tf.cast(thresholded_predictions, dtype=tf.float32)
 
-        f1 = metrics.f1_score(thresholded_predictions, true_labels)
+        hamming = metrics.hamming_loss(thresholded_predictions, true_labels)
 
-        mean_f1 = tf.reduce_mean(f1)
-        return mean_f1, 'f1 score'
+        mean_hamming = tf.reduce_mean(hamming)
+        return mean_hamming, 'hamming loss'
 
-    def eval_op(self, prediction, true_labels):
-        pass
+    def eval_op(self, predictions, true_labels):
+        return metrics.hamming_loss(predictions, true_labels)
 
     def test_error(self, accumulated, total):
-        pass
+        return accumulated / total, 'hamming loss'
 
     def _inputs(self, setpath, fn_preprocess):
         fps, labels = self._load_labelmap(setpath)

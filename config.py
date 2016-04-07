@@ -8,10 +8,10 @@ FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('experiment_name', 'random',
                            """Identifier of the experiment run.""")
 
-tf.app.flags.DEFINE_string('dataset', 'yelp-small',
+tf.app.flags.DEFINE_string('dataset', 'yelp',
                            """The dataset which to train on.""")
 
-tf.app.flags.DEFINE_string('model', 'cifar10-resnet-20',
+tf.app.flags.DEFINE_string('model', 'resnet-18',
                            """The name of the net to train.""")
 
 tf.app.flags.DEFINE_boolean('train', True,
