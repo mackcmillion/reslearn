@@ -3,6 +3,7 @@ from abc import ABCMeta
 
 from architecture.building_blocks import add_n_conv3x3_blocks
 from architecture.layers import conv_layer, pooling_layer, fc_layer
+from config import FLAGS
 from models.model import ResidualModel
 
 
@@ -12,8 +13,12 @@ class ResNet6nplus2(ResidualModel):
     def __init__(self, name, n):
         super(ResNet6nplus2, self).__init__(name, ['cifar10', 'yelp-small'])
         self._n = n
-        # in the paper, they only use identity mapping when testing on CIFAR-10
-        self._adjust_dimensions = 'IDENTITY'
+        # however, in the paper they only use identity mapping when testing on CIFAR-10
+        assert FLAGS.adjust_dimensions_strategy in ['A', 'B']
+        if FLAGS.adjust_dimensions_strategy == 'A':
+            self._adjust_dimensions = 'IDENTITY'
+        else:
+            self._adjust_dimensions = 'PROJECTION'
 
     def inference(self, x, num_classes, phase_train):
         x = conv_layer(x, 16, ksize=3, relu=True, stride=1, name='conv1', phase_train=phase_train)

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-EXPERIMENT_NAME="resnet_56_adam_100000"
+EXPERIMENT_NAME="resnet_110"
 DATASET="cifar10"
-MODEL="cifar10-resnet-56"
+MODEL="cifar10-resnet-110"
 
 DATA_PATH="/home/max/data"
 SUMMARY_PATH="/home/max/summaries"
@@ -13,7 +13,7 @@ mkdir /home/max/logs
 echo "Started training for $EXPERIMENT_NAME..."
 stdbuf -oL python /home/max/reslearn/main.py --experiment_name=${EXPERIMENT_NAME} \
  --dataset=${DATASET} --model=${MODEL} \
- --train --initial_learning_rate=0.01 --learning_rate_decay_strategy=1 \
+ --train --learning_rate_decay_strategy=1 --initial_learning_rate=0.01 \
  --data_path=${DATA_PATH} --summary_path=${SUMMARY_PATH} --checkpoint_path=${CHECKPOINT_PATH} \
  >/home/max/logs/${EXPERIMENT_NAME}.log
 echo "Finished training for $EXPERIMENT_NAME."

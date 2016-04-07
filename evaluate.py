@@ -9,6 +9,7 @@ import numpy
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 
+import util
 from config import FLAGS
 from util import extract_global_step
 
@@ -102,6 +103,19 @@ def _has_new_checkpoint(path, last):
         return last, None
     min_global_step = min(new_files)
     return min_global_step, new_files[min_global_step]
+
+
+def _in_top_k(predictions, true_labels):
+    # softmax is not necessary here
+    # predictions = tf.nn.softmax(predictions, name='eval_softmax')
+    return tf.nn.in_top_k(predictions, true_labels, FLAGS.top_k)
+
+
+def _test_error(predictions, true_labels, dataset):
+    softmaxed = tf.nn.softmax(predictions)
+    correct_prediction = tf.equal(tf.argmax(softmaxed, 1),
+                                  tf.argmax(util.encode_one_hot(true_labels, dataset.num_classes), 1))
+    return tf.cast(correct_prediction, tf.float32)
 
 
 def _top_k_10crop(predictions, true_labels):
