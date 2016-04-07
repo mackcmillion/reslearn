@@ -10,11 +10,11 @@ from config import FLAGS
 # where n_hat = k**2 * d
 # with k the image size (k x k) and d the number of channels
 def conv_layer(x, out_channels, ksize, relu, stride, phase_train, name):
-    n_hat = (int(x.get_shape()[1].value / stride) ** 2) * out_channels
-    stddev_init = math.sqrt(2.0 / n_hat)
+    n_hat = 1 * 1 * x.get_shape()[3].value
+    stddev_init = 1.0 / math.sqrt(1.0 * n_hat)
     w = weight_variable(shape=[ksize, ksize, x.get_shape()[3].value, out_channels],
                         name=name + '_weights',
-                        stddev=stddev_init,
+                        stddev=stddev_init, uniform=True,
                         wd=FLAGS.weight_decay)
 
     x = tf.nn.conv2d(x, w, strides=[1, stride, stride, 1], padding='SAME', name=name)
