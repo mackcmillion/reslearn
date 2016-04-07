@@ -14,10 +14,10 @@ tf.app.flags.DEFINE_string('dataset', 'yelp',
 tf.app.flags.DEFINE_string('model', 'resnet-18',
                            """The name of the net to train.""")
 
-tf.app.flags.DEFINE_boolean('train', True,
+tf.app.flags.DEFINE_boolean('train', False,
                             """Whether the training procedure should be started.""")
 
-tf.app.flags.DEFINE_boolean('eval', False,
+tf.app.flags.DEFINE_boolean('eval', True,
                             """Whether the validation procedure should be started.""")
 
 tf.app.flags.DEFINE_boolean('resume', False,

@@ -293,3 +293,10 @@ import tensorflow as tf
 # print precision.eval()
 # print recall.eval()
 
+sess = tf.InteractiveSession()
+
+images = tf.ones([2, 4, 4, 1], dtype=tf.float32)
+
+glimpse = tf.image.extract_glimpse(images, [2, 2], [[0.0, 0.0], [0.0, 0.0]], centered=True, normalized=True)
+print glimpse
+print glimpse.eval()
