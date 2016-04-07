@@ -98,6 +98,9 @@ tf.app.flags.DEFINE_integer('top_k', 1,
 tf.app.flags.DEFINE_string('data_path', '/home/max/Studium/Kurse/BA2/data',
                            """Directory that contain all the data.""")
 
+tf.app.flags.DEFINE_string('learning_rate_file_path', os.path.join(FLAGS.data_path, 'learning_rate'),
+                           """File to write the learning rate to. For manual learning rate update.""")
+
 # ImageNet data directory and file paths
 tf.app.flags.DEFINE_string('training_images', os.path.join(FLAGS.data_path, 'imagenet/synsets'),
                            """Directory containing the training image data.""")

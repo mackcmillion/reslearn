@@ -112,6 +112,8 @@ def train(dataset, model, summary_path, checkpoint_path):
             # update learning rate if necessary
             lr = learningrate.update_lr(sess, lr, step, train_err_avg, overall_train_err)
 
+        lr = _check_learning_rate_consistency(lr)
+
     coord.join(threads)
     sess.close()
 
@@ -203,3 +205,13 @@ def _compute_overall_training_error(sess, coord, global_step, dataset, eval_op, 
     print '%s - step %d, %s = %.2f%%' % (dt.now(), global_step, overall_train_error_name, overall_train_error * 100)
 
     return overall_train_error
+
+
+def _check_learning_rate_consistency(lr):
+    with open(FLAGS.learning_rate_file_path, 'r') as lrfile:
+        file_lr = float(lrfile.read())
+        if file_lr != lr:
+            print '%s - Detected different learning rate: %.3f.' % (
+                dt.now(), file_lr)
+            return file_lr
+    return lr

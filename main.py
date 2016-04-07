@@ -75,6 +75,11 @@ def main(argv=None):  # pylint: disable=unused-argument
     if not gfile.Exists(checkpoint_path):
         gfile.MkDir(checkpoint_path)
 
+    if gfile.Exists(FLAGS.learning_rate_file_path):
+        gfile.Remove(FLAGS.learning_rate_file_path)
+    with open(FLAGS.learning_rate_file_path, 'w') as lrfile:
+        lrfile.write(str(FLAGS.initial_learning_rate))
+
     dataset.pre_graph()
 
     training_thread = None

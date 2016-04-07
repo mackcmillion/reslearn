@@ -53,6 +53,8 @@ def dynamic_decay(lr, global_step, decay_factor, train_err):
     else:
         new_lr = decay_factor * lr
         NUM_DECAYS += 1
+        with open(FLAGS.learning_rate_file_path, 'w') as lrfile:
+            lrfile.write(str(lr))
     PREV_TRAIN_ERR = train_err
     return new_lr
 
