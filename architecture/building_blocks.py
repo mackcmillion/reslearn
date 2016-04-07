@@ -1,7 +1,8 @@
 import math
+
 import tensorflow as tf
 
-from architecture.layers import conv_layer, bias_variable, batch_normalize, weight_variable
+from architecture.layers import conv_layer, weight_variable
 from config import FLAGS
 
 
@@ -18,8 +19,9 @@ def residual_building_block(x, to_wrap, adjust_dimensions, name):
     # this is the residual addition
     x += to_wrap
 
-    # TODO optionally drop ReLU here
-    return tf.nn.relu(x, name=name + '_ResidualReLU')
+    # dropped ReLU since it yielded better results in http://torch.ch/blog/2016/02/04/resnets.html
+    # return tf.nn.relu(x, name=name + '_ResidualReLU')
+    return x
 
 
 def _identity_mapping(x, x_shape, f_shape, name):
