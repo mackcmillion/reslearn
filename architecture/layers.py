@@ -8,7 +8,7 @@ from config import FLAGS
 # optimized weight variable initialization according to
 # K. He - Delving Deep into Rectifiers: Surpassing Human Performance in ImageNet Classification
 # where n_hat = k**2 * d
-# with k the image size (k x k) and d the number of channels
+# with k the kernel size (k x k) and d the number of output channels
 def conv_layer(x, out_channels, ksize, relu, stride, phase_train, name):
     n_hat = ksize * ksize * out_channels
     stddev_init = math.sqrt(2.0 / (1.0 * n_hat))
@@ -37,7 +37,6 @@ def pooling_layer(x, pooling_func, ksize, stride, name):
 
 
 def fc_layer(x, out_channels, activation_fn, name):
-    # n = x.get_shape()[1].value
     stddev_init = 1.0 / math.sqrt(1.0 * out_channels)
     w = weight_variable([x.get_shape()[1].value, out_channels],
                         name=name + '_weights',
@@ -59,15 +58,11 @@ def fc_layer(x, out_channels, activation_fn, name):
 # batch normalization according to
 # S. Ioffe - Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift
 def batch_normalize(x, out_channels, phase_train, name):
-    # n_hat = (x.get_shape()[1].value ** 2) * out_channels
-    # stddev_init = math.sqrt(2.0 / n_hat)
     mean, variance = tf.nn.moments(x, [0, 1, 2])
     beta = tf.Variable(tf.constant(0.0, shape=[out_channels]), name=name + '_beta',
                        trainable=True)
     gamma = tf.Variable(tf.constant(1.0, shape=[out_channels]), name=name + '_gamma',
                         trainable=True)
-    # beta = weight_variable([out_channels], name=name + '_beta', stddev=stddev_init, wd=FLAGS.weight_decay)
-    # gamma = weight_variable([out_channels], name=name + '_gamma', stddev=stddev_init, wd=FLAGS.weight_decay)
     return tf.nn.batch_norm_with_global_normalization(x, mean, variance, beta, gamma, 0.001,
                                                       scale_after_normalization=True, name=name + '_batchNorm')
 

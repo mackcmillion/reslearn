@@ -1,8 +1,8 @@
 #!/bin/bash
 
-EXPERIMENT_NAME="resnet_110_adam_80000"
+EXPERIMENT_NAME="resnet_44"
 DATASET="cifar10"
-MODEL="cifar10-resnet-110"
+MODEL="cifar10-resnet-44"
 
 DATA_PATH="/home/max/data"
 SUMMARY_PATH="/home/max/summaries"

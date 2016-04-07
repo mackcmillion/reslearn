@@ -1,6 +1,6 @@
 #!/bin/bash
 
-EXPERIMENT_NAME="resnet_32_adam_80000"
+EXPERIMENT_NAME="resnet_32"
 DATASET="cifar10"
 MODEL="cifar10-resnet-32"
 
