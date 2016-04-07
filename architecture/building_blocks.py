@@ -31,7 +31,7 @@ def _identity_mapping(x, x_shape, f_shape, name):
 
 def _projection_mapping(x, x_shape, f_shape, name):
     # divide by two comes from stride 2 in the convolution/pooling
-    n_hat = (int(x.get_shape()[1].value / 2) ** 2) * f_shape[3].value
+    n_hat = 1 * 1 * f_shape[3].value
     stddev_init = math.sqrt(2.0 / n_hat)
     # TODO this is also ugly. Replace with 1x1 convolution with stride 2 as soon as it's supported.
     extracted = tf.nn.max_pool(_mask_input(x), [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
