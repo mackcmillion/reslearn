@@ -1,6 +1,7 @@
 # most of this code is taken from
 # https://tensorflow.googlesource.com/tensorflow/+/master/tensorflow/models/image/cifar10/cifar10.py
 import math
+import numpy
 import os
 import time
 from datetime import datetime as dt
@@ -24,6 +25,9 @@ def train(dataset, model, summary_path, checkpoint_path):
     loss_op = loss(dataset, predictions, true_labels)
     train_err = tf.Variable(1.0, trainable=False)
     train_err_assign, train_err_name = training_error(predictions, true_labels, dataset, train_err)
+
+    eval_op = dataset.eval_op(predictions, true_labels)
+    overall_train_err_op = dataset.test_error
 
     lr = FLAGS.initial_learning_rate
     learning_rate = tf.placeholder(dtype=tf.float32, shape=[], name='learning_rate')
@@ -98,8 +102,15 @@ def train(dataset, model, summary_path, checkpoint_path):
                 dt.now(), format_time_hhmmss(overall_duration))
             break
 
-        # update learning rate if necessary
-        lr = learningrate.update_lr(sess, lr, step, train_err_avg)
+        if step % FLAGS.lr_interval == 0:
+            if FLAGS.learning_rate_decay_strategy == 2:
+                overall_train_err = _compute_overall_training_error(sess, dataset, predictions, true_labels, eval_op,
+                                                                    overall_train_err_op)
+            else:
+                # value is not needed for other LR schedules
+                overall_train_err = 0
+            # update learning rate if necessary
+            lr = learningrate.update_lr(sess, lr, step, train_err_avg, overall_train_err)
 
     coord.join(threads)
     sess.close()
@@ -176,3 +187,19 @@ def training_op(total_loss, train_err, train_err_assign, learning_rate, global_s
         train_op = tf.no_op(name='train')
 
     return train_op, train_err_avg
+
+
+def _compute_overall_training_error(sess, coord, global_step, dataset, eval_op, overall_train_err_op):
+    num_iter = int(math.ceil((1.0 * dataset.num_training_images) / FLAGS.batch_size))
+    accumulated = 0.0
+    total_sample_count = num_iter * FLAGS.batch_size
+    step = 0
+    while step < num_iter and not coord.should_stop():
+        predictions = sess.run(eval_op)
+        accumulated += numpy.sum(predictions)
+        step += 1
+
+    overall_train_error, overall_train_error_name = overall_train_err_op(accumulated, total_sample_count)
+    print '%s - step %d, %s = %.2f%%' % (dt.now(), global_step, overall_train_error_name, overall_train_error * 100)
+
+    return overall_train_error

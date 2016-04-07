@@ -14,10 +14,10 @@ tf.app.flags.DEFINE_string('dataset', 'yelp',
 tf.app.flags.DEFINE_string('model', 'resnet-18',
                            """The name of the net to train.""")
 
-tf.app.flags.DEFINE_boolean('train', False,
+tf.app.flags.DEFINE_boolean('train', True,
                             """Whether the training procedure should be started.""")
 
-tf.app.flags.DEFINE_boolean('eval', True,
+tf.app.flags.DEFINE_boolean('eval', False,
                             """Whether the validation procedure should be started.""")
 
 tf.app.flags.DEFINE_boolean('resume', False,
@@ -39,13 +39,15 @@ tf.app.flags.DEFINE_float('initial_learning_rate', 0.1,
                           decay strategy.
                           """)
 
-# TODO implement "intelligent" decay strategy
 tf.app.flags.DEFINE_integer('learning_rate_decay_strategy', 0,
                             """
                             The schedule that is used to decay the learning rate. Possible options:
-                            - 0 Divides the learning rate by 10 at 52000 and 78000 steps.
+                            - 0 Divides the learning rate by 10 at 32000 and 48000 steps.
                             - 1 Multiplies the learning rate by 10 when training error drops below 80% and then
                                 continues with the default decay schedule (Option 0)
+                            - 2 Dynamic learning rate decay: divides learning rate by 10 if the training error does not
+                                decrease anymore. Costly since it computes the training error over the whole training
+                                set each "lr_interval" steps.
                             """)
 
 tf.app.flags.DEFINE_float('weight_decay', 0.0001,
@@ -76,6 +78,9 @@ tf.app.flags.DEFINE_integer('summary_interval', 100,
 
 tf.app.flags.DEFINE_integer('checkpoint_interval', 100,
                             """The number of steps after which to create a new checkpoint.""")
+
+tf.app.flags.DEFINE_integer('lr_interval', 10000,
+                            """The number of steps after which to check if the learning rate needs to be updated.""")
 
 tf.app.flags.DEFINE_integer('eval_interval_secs', 10,
                             """Interval seconds in which to poll the checkpoint directory for new checkpoint files.""")

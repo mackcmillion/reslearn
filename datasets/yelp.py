@@ -10,10 +10,12 @@ from preprocess import resize_random, random_crop_to_square, random_flip, color_
 from scripts.labelmap import create_label_map_file_yelp
 from scripts.meanstddev import compute_overall_mean_stddev
 
+CLASSIFICATION_THRESHOLD = 0.5
+
 
 class Yelp(Dataset):
     def __init__(self):
-        super(Yelp, self).__init__('yelp', 9)
+        super(Yelp, self).__init__('yelp', 9, 161609, 73233)
         self._color_data = None
 
     def pre_graph(self):
@@ -31,11 +33,12 @@ class Yelp(Dataset):
         return self._inputs_evaluation(FLAGS.yelp_validation_set)
 
     def loss_fn(self, predictions, true_labels):
-        predictions = tf.Print(predictions, [predictions], summarize=1000)
-        return util.mll_error(predictions, true_labels)
+        return tf.nn.sigmoid_cross_entropy_with_logits(predictions, true_labels)
+        # diverges with NaN
+        # return util.mll_error(predictions, true_labels)
 
     def training_error(self, predictions, true_labels):
-        threshold = tf.constant(0.0, dtype=tf.float32, shape=predictions.get_shape())
+        threshold = tf.constant(CLASSIFICATION_THRESHOLD, dtype=tf.float32, shape=predictions.get_shape())
         thresholded_predictions = tf.greater(predictions, threshold)
         thresholded_predictions = tf.cast(thresholded_predictions, dtype=tf.float32)
 
@@ -45,7 +48,7 @@ class Yelp(Dataset):
         return mean_hamming, 'hamming loss'
 
     def eval_op(self, predictions, true_labels):
-        threshold = tf.constant(0.0, dtype=tf.float32, shape=predictions.get_shape())
+        threshold = tf.constant(CLASSIFICATION_THRESHOLD, dtype=tf.float32, shape=predictions.get_shape())
         thresholded_predictions = tf.greater(predictions, threshold)
         thresholded_predictions = tf.cast(thresholded_predictions, dtype=tf.float32)
 
@@ -152,7 +155,6 @@ class Yelp(Dataset):
         image = random_flip(image)
         return image
 
-    # TODO implement better evaluation preprocessing
     def _preprocess_for_evaluation(self, image):
         resizes = []
         for shorter_edge in [224, 256, 384, 480, 640]:

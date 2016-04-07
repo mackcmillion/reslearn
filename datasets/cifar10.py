@@ -11,11 +11,9 @@ from scripts.meanstddev import compute_overall_mean_stddev
 
 
 class Cifar10(Dataset):
-    _NUM_TRAINING_IMAGES = 50000
-    _NUM_VALIDATION_IMAGES = 10000
 
     def __init__(self):
-        super(Cifar10, self).__init__('cifar10', 10)
+        super(Cifar10, self).__init__('cifar10', 10, 50000, 10000)
         self._color_data = None
 
     def pre_graph(self):
@@ -64,7 +62,7 @@ class Cifar10(Dataset):
             image = self._preprocess_for_evaluation(image)
 
         min_num_examples_in_queue = int(FLAGS.min_frac_examples_in_queue *
-                                        self._NUM_TRAINING_IMAGES if is_training else self._NUM_VALIDATION_IMAGES)
+                                        self._num_training_images if is_training else self._num_validation_images)
         image_batch, label_batch = tf.train.shuffle_batch(
                 [image, label],
                 batch_size=FLAGS.batch_size,

@@ -4,12 +4,14 @@ from config import FLAGS
 _RAISED = False
 
 
-def update_lr(sess, lr, global_step, train_err_avg):
+def update_lr(sess, lr, global_step, train_err_avg, overall_train_err):
     if FLAGS.learning_rate_decay_strategy == 0:
         return decay_at_fixed_steps_default(lr, global_step)
     elif FLAGS.learning_rate_decay_strategy == 1:
         train_err = sess.run(train_err_avg)
         return raise_at_train_err_then_decay_at_fixed_steps_default(lr, global_step, train_err)
+    elif FLAGS.learning_rate_decay_strategy == 2:
+        return dynamic_decay(lr, global_step, 0.1, overall_train_err)
     else:
         raise ValueError('Unknown learning rate decay strategy.')
 
@@ -39,31 +41,20 @@ def raise_at_train_err_then_decay_at_fixed_steps(lr, global_step, thresholds, de
     return lr
 
 
-AVG_ACCUM = []
-DECAY_ACCUM = [1.0, -1.0, 1.0, -1.0, -1.0]
-SAFETY_TIMER = 10000
-OLD_GLOBAL_STEP = 0
+PREV_TRAIN_ERR = 1.0
+# maximum of decays should be 2
+NUM_DECAYS = 0
 
 
 def dynamic_decay(lr, global_step, decay_factor, train_err):
-    global AVG_ACCUM, DECAY_ACCUM, SAFETY_TIMER, OLD_GLOBAL_STEP
-
-    if global_step % 5000 == 0:
-        avg = sum(AVG_ACCUM) / len(AVG_ACCUM)
-        DECAY_ACCUM.append(avg)
-        DECAY_ACCUM.pop(0)
-
-        AVG_ACCUM = []
-
-        if max(DECAY_ACCUM) - min(DECAY_ACCUM) <= 0.01 and SAFETY_TIMER <= 0:
-            SAFETY_TIMER = 10000
-            OLD_GLOBAL_STEP = global_step
-            return lr * decay_factor
-
-    AVG_ACCUM.append(train_err)
-    SAFETY_TIMER -= global_step - OLD_GLOBAL_STEP
-    OLD_GLOBAL_STEP = global_step
-    return lr
+    global PREV_TRAIN_ERR, NUM_DECAYS
+    if NUM_DECAYS < 2 and train_err < PREV_TRAIN_ERR:
+        new_lr = lr
+    else:
+        new_lr = decay_factor * lr
+        NUM_DECAYS += 1
+    PREV_TRAIN_ERR = train_err
+    return new_lr
 
 
 def dynamic_decay_default(lr, global_step, train_err):
