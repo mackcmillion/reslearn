@@ -54,10 +54,10 @@ tf.app.flags.DEFINE_float('weight_decay', 0.0001,
                           """The constant float L2 weight decay loss is multiplied with.""")
 
 
-tf.app.flags.DEFINE_integer('training_steps', 500000,
+tf.app.flags.DEFINE_integer('training_steps', 2000000,
                             """Number of iterations for training.""")
 
-tf.app.flags.DEFINE_integer('batch_size', 256,
+tf.app.flags.DEFINE_integer('batch_size', 64,
                             """Size of the mini-batches used for training.""")
 
 tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.01,
