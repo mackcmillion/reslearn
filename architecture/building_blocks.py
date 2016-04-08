@@ -72,6 +72,23 @@ def conv3x3_block(x, in_channels, out_channels, adjust_dimensions, namespace, ph
     return y
 
 
+def conv2x2_block(x, in_channels, out_channels, adjust_dimensions, namespace, phase_train):
+    assert x.get_shape()[3].value == in_channels
+    if in_channels != out_channels:
+        assert out_channels == 2 * in_channels
+        stride = 2
+    else:
+        stride = 1
+
+    with tf.name_scope(namespace):
+        f = conv_layer(x, out_channels, ksize=2, relu=True, stride=stride, phase_train=phase_train,
+                       name=namespace + '_1')
+        f = conv_layer(f, out_channels, ksize=2, relu=False, stride=1, phase_train=phase_train, name=namespace + '_2')
+
+        y = residual_building_block(x, to_wrap=f, adjust_dimensions=adjust_dimensions, name=namespace)
+    return y
+
+
 def add_n_conv3x3_blocks(x, n, in_channels, out_channels, adjust_dimensions, namespace, phase_train):
     assert n > 0
     # add first 3x3 layer that maybe performs downsampling
@@ -79,4 +96,14 @@ def add_n_conv3x3_blocks(x, n, in_channels, out_channels, adjust_dimensions, nam
     # add the rest n-1 layers that keep dimensions
     for i in xrange(1, n):
         x = conv3x3_block(x, out_channels, out_channels, adjust_dimensions, namespace + ('_%i' % (i + 1)), phase_train)
+    return x
+
+
+def add_n_conv2x2_blocks(x, n, in_channels, out_channels, adjust_dimensions, namespace, phase_train):
+    assert n > 0
+    # add first 3x3 layer that maybe performs downsampling
+    x = conv2x2_block(x, in_channels, out_channels, adjust_dimensions, namespace + '_1', phase_train)
+    # add the rest n-1 layers that keep dimensions
+    for i in xrange(1, n):
+        x = conv2x2_block(x, out_channels, out_channels, adjust_dimensions, namespace + ('_%i' % (i + 1)), phase_train)
     return x

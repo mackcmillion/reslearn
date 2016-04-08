@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from architecture.building_blocks import add_n_conv3x3_blocks
+from architecture.building_blocks import add_n_conv3x3_blocks, add_n_conv2x2_blocks
 from architecture.layers import conv_layer, pooling_layer, fc_layer
 from model import ResidualModel
 
@@ -17,9 +17,9 @@ class YelpResNet18(ResidualModel):
         x = add_n_conv3x3_blocks(x, 2, 64, 64, self._adjust_dimensions, 'conv2', phase_train)
         x = add_n_conv3x3_blocks(x, 2, 64, 128, self._adjust_dimensions, 'conv3', phase_train)
         x = add_n_conv3x3_blocks(x, 2, 128, 256, self._adjust_dimensions, 'conv4', phase_train)
-        x = add_n_conv3x3_blocks(x, 2, 256, 512, self._adjust_dimensions, 'conv5', phase_train)
+        x = add_n_conv2x2_blocks(x, 2, 256, 512, self._adjust_dimensions, 'conv5', phase_train)
 
-        x = pooling_layer(x, tf.nn.avg_pool, ksize=4, stride=1, name='avg_pool')
+        x = pooling_layer(x, tf.nn.avg_pool, ksize=2, stride=1, name='avg_pool')
         x = fc_layer(tf.squeeze(x), num_classes, activation_fn=None, name='fc')
 
         return x
