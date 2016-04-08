@@ -38,6 +38,7 @@ class Yelp(Dataset):
         # return util.mll_error(predictions, true_labels)
 
     def training_error(self, predictions, true_labels):
+        predictions = tf.sigmoid(predictions)
         threshold = tf.constant(CLASSIFICATION_THRESHOLD, dtype=tf.float32, shape=predictions.get_shape())
         thresholded_predictions = tf.greater(predictions, threshold)
         thresholded_predictions = tf.cast(thresholded_predictions, dtype=tf.float32)
@@ -48,6 +49,7 @@ class Yelp(Dataset):
         return mean_hamming, 'hamming loss'
 
     def eval_op(self, predictions, true_labels):
+        predictions = tf.sigmoid(predictions)
         threshold = tf.constant(CLASSIFICATION_THRESHOLD, dtype=tf.float32, shape=predictions.get_shape())
         thresholded_predictions = tf.greater(predictions, threshold)
         thresholded_predictions = tf.cast(thresholded_predictions, dtype=tf.float32)
