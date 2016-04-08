@@ -78,7 +78,7 @@ class Yelp(Dataset):
                 batch_size=FLAGS.batch_size,
                 capacity=min_num_examples_in_queue + (FLAGS.num_consuming_threads + 2) * FLAGS.batch_size,
                 min_after_dequeue=min_num_examples_in_queue,
-                shapes=[[224, 224, 3], [self._num_classes]]
+                shapes=[[128, 128, 3], [self._num_classes]]
         )
 
         return image_batch, label_batch
@@ -146,10 +146,10 @@ class Yelp(Dataset):
         return [processed_img, label]
 
     def _preprocess_for_training(self, image):
-        image = resize_random(image, 256, 480)
+        image = resize_random(image, 146, 274)
         # swapped cropping and flipping because flip needs image shape to be fully defined - should not make a
         # difference
-        image = random_crop_to_square(image, 224)
+        image = random_crop_to_square(image, 128)
         image = color_noise(image, *self._color_data[2:])
         image = normalize_colors(image, *self._color_data[:2])
         image = random_flip(image)
@@ -157,11 +157,11 @@ class Yelp(Dataset):
 
     def _preprocess_for_evaluation(self, image):
         resizes = []
-        for shorter_edge in [224, 256, 384, 480, 640]:
+        for shorter_edge in [128, 146, 219, 274, 366]:
             resized = resize(image, shorter_edge)
             image = normalize_colors(image, *self._color_data[:2])
             # get the center crop at size 256x256. ten cropping to 224x224 is done by evaluation function
-            resized_crop = single_crop(resized, 256)
+            resized_crop = single_crop(resized, 146)
             resized_crop_flip = tf.image.flip_left_right(resized_crop)
             resizes.append(tf.pack([resized_crop, resized_crop_flip]))
 

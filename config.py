@@ -11,10 +11,10 @@ tf.app.flags.DEFINE_string('experiment_name', 'random',
 tf.app.flags.DEFINE_string('dataset', 'yelp',
                            """The dataset which to train on.""")
 
-tf.app.flags.DEFINE_string('model', 'resnet-18',
+tf.app.flags.DEFINE_string('model', 'yelp-resnet-18',
                            """The name of the net to train.""")
 
-tf.app.flags.DEFINE_boolean('train', False,
+tf.app.flags.DEFINE_boolean('train', True,
                             """Whether the training procedure should be started.""")
 
 tf.app.flags.DEFINE_boolean('eval', False,
