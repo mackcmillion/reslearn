@@ -14,7 +14,7 @@ tf.app.flags.DEFINE_string('dataset', 'yelp',
 tf.app.flags.DEFINE_string('model', 'resnet-18',
                            """The name of the net to train.""")
 
-tf.app.flags.DEFINE_boolean('train', True,
+tf.app.flags.DEFINE_boolean('train', False,
                             """Whether the training procedure should be started.""")
 
 tf.app.flags.DEFINE_boolean('eval', False,
@@ -23,7 +23,7 @@ tf.app.flags.DEFINE_boolean('eval', False,
 tf.app.flags.DEFINE_boolean('resume', False,
                             """Whether the training should be resumed from the latest found checkpoint.""")
 
-tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
+tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'B',
                            """
                            The method to adjust the dimensions of the input layer when using residual building blocks.
                            Can have the following values:
@@ -39,7 +39,7 @@ tf.app.flags.DEFINE_float('initial_learning_rate', 0.1,
                           decay strategy.
                           """)
 
-tf.app.flags.DEFINE_integer('learning_rate_decay_strategy', 0,
+tf.app.flags.DEFINE_integer('learning_rate_decay_strategy', 2,
                             """
                             The schedule that is used to decay the learning rate. Possible options:
                             - 0 Divides the learning rate by 10 at 32000 and 48000 steps.
@@ -54,7 +54,7 @@ tf.app.flags.DEFINE_float('weight_decay', 0.0001,
                           """The constant float L2 weight decay loss is multiplied with.""")
 
 
-tf.app.flags.DEFINE_integer('training_steps', 64000,
+tf.app.flags.DEFINE_integer('training_steps', 1000000,
                             """Number of iterations for training.""")
 
 tf.app.flags.DEFINE_integer('batch_size', 128,
@@ -73,10 +73,10 @@ tf.app.flags.DEFINE_integer('num_consuming_threads', 3,
 tf.app.flags.DEFINE_integer('log_interval', 1,
                             """The number of steps after which to print a log message.""")
 
-tf.app.flags.DEFINE_integer('summary_interval', 100,
+tf.app.flags.DEFINE_integer('summary_interval', 1000,
                             """The number of steps after which to create a new summary.""")
 
-tf.app.flags.DEFINE_integer('checkpoint_interval', 100,
+tf.app.flags.DEFINE_integer('checkpoint_interval', 1000,
                             """The number of steps after which to create a new checkpoint.""")
 
 tf.app.flags.DEFINE_integer('lr_interval', 10000,
