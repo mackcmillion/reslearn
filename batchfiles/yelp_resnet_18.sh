@@ -2,7 +2,7 @@
 
 EXPERIMENT_NAME="yelp_resnet_18"
 DATASET="yelp"
-MODEL="yelp-resnet-18"
+MODEL="resnet-18"
 
 DATA_PATH="/home/max/data"
 SUMMARY_PATH="/home/max/summaries"

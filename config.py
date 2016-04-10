@@ -14,7 +14,7 @@ tf.app.flags.DEFINE_string('dataset', 'yelp',
 tf.app.flags.DEFINE_string('model', 'resnet-18',
                            """The name of the net to train.""")
 
-tf.app.flags.DEFINE_boolean('train', False,
+tf.app.flags.DEFINE_boolean('train', True,
                             """Whether the training procedure should be started.""")
 
 tf.app.flags.DEFINE_boolean('eval', False,
@@ -60,7 +60,7 @@ tf.app.flags.DEFINE_integer('training_steps', 2000000,
 tf.app.flags.DEFINE_integer('batch_size', 16,
                             """Size of the mini-batches used for training.""")
 
-tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.01,
+tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.001,
                           """The minimum fraction of all examples to be held in the input queue.
                           Ensures good shuffling.""")
 
