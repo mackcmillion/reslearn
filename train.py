@@ -205,7 +205,7 @@ def _compute_overall_training_error(sess, coord, global_step, dataset, eval_op, 
 
     overall_train_error, overall_train_error_name = overall_train_err_op(accumulated, total_sample_count)
     print '%s - step %d, overall %s = %.2f%%' % (
-    dt.now(), global_step, overall_train_error_name, overall_train_error * 100)
+    dt.now(), sess.run(global_step), overall_train_error_name, sess.run(overall_train_error) * 100)
 
     return overall_train_error
 

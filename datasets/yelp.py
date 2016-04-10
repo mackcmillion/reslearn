@@ -106,7 +106,7 @@ class Yelp(Dataset):
                 batch_size=FLAGS.batch_size,
                 capacity=min_num_examples_in_queue + (FLAGS.num_consuming_threads + 2) * FLAGS.batch_size,
                 min_after_dequeue=min_num_examples_in_queue,
-                shapes=[[5, 2, 256, 256, 3], [self._num_classes]]
+                shapes=[[5, 2, 73, 73, 3], [self._num_classes]]
         )
 
         return image_batch, label_batch
