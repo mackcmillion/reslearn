@@ -18,7 +18,7 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
     with tf.Graph().as_default():
         # input and evaluation procedure
         images, true_labels = dataset.evaluation_inputs()
-        predictions = model.inference_ten_crop(images, dataset.num_classes, 64, False)
+        predictions = model.inference_ten_crop(images, dataset.num_classes, 224, False)
         eval_op = dataset.eval_op(predictions, true_labels)
         test_err_op = dataset.test_error
 
