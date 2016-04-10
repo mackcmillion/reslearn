@@ -104,7 +104,7 @@ def train(dataset, model, summary_path, checkpoint_path):
 
         if step % FLAGS.lr_interval == 0:
             if FLAGS.learning_rate_decay_strategy == 2:
-                overall_train_err = _compute_overall_training_error(sess, dataset, predictions, true_labels, eval_op,
+                overall_train_err = _compute_overall_training_error(sess, coord, global_step, dataset, eval_op,
                                                                     overall_train_err_op)
             else:
                 # value is not needed for other LR schedules
@@ -196,13 +196,16 @@ def _compute_overall_training_error(sess, coord, global_step, dataset, eval_op, 
     accumulated = 0.0
     total_sample_count = num_iter * FLAGS.batch_size
     step = 0
+    print '%s - Started computing overall training error.' % dt.now()
     while step < num_iter and not coord.should_stop():
         predictions = sess.run(eval_op)
         accumulated += numpy.sum(predictions)
         step += 1
+        print '%s - overall training error step %d/%d.' % (dt.now(), step, num_iter)
 
     overall_train_error, overall_train_error_name = overall_train_err_op(accumulated, total_sample_count)
-    print '%s - step %d, %s = %.2f%%' % (dt.now(), global_step, overall_train_error_name, overall_train_error * 100)
+    print '%s - step %d, overall %s = %.2f%%' % (
+    dt.now(), global_step, overall_train_error_name, overall_train_error * 100)
 
     return overall_train_error
 

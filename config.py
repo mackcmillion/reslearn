@@ -60,7 +60,7 @@ tf.app.flags.DEFINE_integer('training_steps', 2000000,
 tf.app.flags.DEFINE_integer('batch_size', 64,
                             """Size of the mini-batches used for training.""")
 
-tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.01,
+tf.app.flags.DEFINE_float('min_frac_examples_in_queue', 0.001,
                           """The minimum fraction of all examples to be held in the input queue.
                           Ensures good shuffling.""")
 
@@ -79,7 +79,7 @@ tf.app.flags.DEFINE_integer('summary_interval', 1000,
 tf.app.flags.DEFINE_integer('checkpoint_interval', 1000,
                             """The number of steps after which to create a new checkpoint.""")
 
-tf.app.flags.DEFINE_integer('lr_interval', 10000,
+tf.app.flags.DEFINE_integer('lr_interval', 1,
                             """The number of steps after which to check if the learning rate needs to be updated.""")
 
 tf.app.flags.DEFINE_integer('eval_interval_secs', 10,
