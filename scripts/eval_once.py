@@ -64,7 +64,7 @@ def _eval_once(sess, coord, saver, read_checkpoint_path, dataset, pred_op, filen
         target_file.write('image,true_labels,predictions')
         for result in results:
             true_label, prediction = results[result]
-            target_file.write('%s,%s,%s' % (result, str(true_label), str(prediction)))
+            target_file.write('%s,%s,%s\n' % (result, str(true_label), str(prediction)))
 
 
 def main(argv=None):  # pylint: disable=unused-argument
