@@ -62,3 +62,11 @@ def _in_top_k(predictions, true_labels):
     # softmax is not necessary here
     # predictions = tf.nn.softmax(predictions, name='eval_softmax')
     return tf.nn.in_top_k(predictions, true_labels, FLAGS.top_k)
+
+
+def main(argv=None):  # pylint: disable=unused-argument
+    evaluate(FLAGS.dataset, FLAGS.model)
+
+
+if __name__ == '__main__':
+    tf.app.run()
