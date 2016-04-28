@@ -23,7 +23,7 @@ tf.app.flags.DEFINE_boolean('eval', False,
 tf.app.flags.DEFINE_boolean('resume', False,
                             """Whether the training should be resumed from the latest found checkpoint.""")
 
-tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'A',
+tf.app.flags.DEFINE_string('adjust_dimensions_strategy', 'B',
                            """
                            The method to adjust the dimensions of the input layer when using residual building blocks.
                            Can have the following values:

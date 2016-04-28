@@ -5,12 +5,17 @@ import tensorflow as tf
 from datetime import datetime as dt
 
 from config import FLAGS
+from datasets.cifar10 import Cifar10
+from models.resnet6nplus2 import CIFAR10ResNet20, CIFAR10ResNet32, CIFAR10ResNet44, CIFAR10ResNet56
 
-tf.app.flags.DEFINE_string('checkpoint', '/home/max/Studium/Kurse/BA2/results/checkpoints/resnet_20_2016-04-07_13-38-34/cifar10-resnet-20.ckpt-64000',
+tf.app.flags.DEFINE_string('checkpoint', '/home/max/Studium/Kurse/BA2/results/checkpoints/resnet_56_optB_2016-04-24_15-18-01/cifar10-resnet-56.ckpt-64000',
                            """The checkpoint to compute test error from.""")
 
 
 def evaluate(dataset, model):
+
+    dataset.pre_graph()
+
     with tf.Graph().as_default():
         # input and evaluation procedure
         images, true_labels = dataset.evaluation_inputs()
@@ -45,12 +50,12 @@ def _eval_once(sess, coord, saver, read_checkpoint_path, top_k_op, dataset):
             predictions = sess.run(top_k_op)
             true_count += numpy.sum(predictions)
             step += 1
-            print '%s - %d of %d images: test error = %.2f' % \
+            print '%s - %d of %d images: test error = %.4f' % \
                   (dt.now(), step * FLAGS.batch_size, 10000, 1 - ((true_count * 1.0) / (step * FLAGS.batch_size)))
 
         accuracy = (true_count * 1.0) / total_sample_count
         test_error = 1 - accuracy
-        print '\n%s - final test error over %d images: test error = %.2f%%' % \
+        print '\n%s - final test error over %d images: test error = %.4f%%' % \
               (dt.now(), total_sample_count, test_error * 100)
 
     except Exception as e:  # pylint: disable=broad-except
@@ -65,7 +70,7 @@ def _in_top_k(predictions, true_labels):
 
 
 def main(argv=None):  # pylint: disable=unused-argument
-    evaluate(FLAGS.dataset, FLAGS.model)
+    evaluate(Cifar10(), CIFAR10ResNet56())
 
 
 if __name__ == '__main__':
