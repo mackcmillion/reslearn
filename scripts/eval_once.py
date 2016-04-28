@@ -2,6 +2,8 @@ import math
 
 import tensorflow as tf
 from datetime import datetime as dt
+
+from config import FLAGS
 from datasets.yelp import Yelp
 from models.resnet18 import ResNet18
 
@@ -44,7 +46,7 @@ def _eval_once(sess, coord, saver, read_checkpoint_path, dataset, pred_op, filen
     results = {}
 
     try:
-        num_iter = int(math.ceil((1.0 * dataset.num_evaluation_images) / 16))
+        num_iter = int(math.ceil((1.0 * dataset.num_evaluation_images) / FLAGS.batch_size))
         step = 0
         while step < num_iter and not coord.should_stop():
             predictions = sess.run(pred_op)
@@ -52,7 +54,7 @@ def _eval_once(sess, coord, saver, read_checkpoint_path, dataset, pred_op, filen
                 results[filename] = (true_label, prediction)
             step += 1
             print '%s - %d of %d images' % \
-                  (dt.now(), step * 16, dataset.num_evaluation_images)
+                  (dt.now(), step * FLAGS.batch_size, dataset.num_evaluation_images)
 
     except Exception as e:  # pylint: disable=broad-except
         print e
