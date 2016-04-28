@@ -7,7 +7,7 @@ from config import FLAGS
 from datasets.dataset import Dataset
 from preprocess import resize_random, random_crop_to_square, random_flip, color_noise, normalize_colors, single_crop, \
     resize
-from scripts.labelmap import create_label_map_file_yelp
+from scripts.labelmap import create_label_map_file_yelp_test
 from scripts.meanstddev import compute_overall_mean_stddev
 
 CLASSIFICATION_THRESHOLD = 0.5
@@ -15,13 +15,13 @@ CLASSIFICATION_THRESHOLD = 0.5
 
 class Yelp(Dataset):
     def __init__(self):
-        super(Yelp, self).__init__('yelp', 9, 161609, 73233)
+        super(Yelp, self).__init__('yelp', 9, 161609, 237153)
         self._color_data = None
 
     def pre_graph(self):
         compute_overall_mean_stddev(overwrite=False, num_threads=FLAGS.num_consuming_threads, num_logs=10)
         self._color_data = util.load_meanstddev(FLAGS.yelp_mean_stddev_path)
-        create_label_map_file_yelp(overwrite=False)
+        create_label_map_file_yelp_test(overwrite=False)
 
     def preliminary(self):
         pass
@@ -30,7 +30,7 @@ class Yelp(Dataset):
         return self._inputs(FLAGS.yelp_training_set, self._preprocess_for_training)
 
     def evaluation_inputs(self):
-        return self._inputs_evaluation(FLAGS.yelp_validation_set)
+        return self._inputs_evaluation(FLAGS.yelp_test_set)
 
     def loss_fn(self, predictions, true_labels):
         return tf.nn.sigmoid_cross_entropy_with_logits(predictions, true_labels)

@@ -11,6 +11,28 @@ from config import FLAGS
 WNID_LID_MAP = None
 
 
+def create_label_map_file_yelp_test(overwrite=False, num_logs=10):
+    is_test_set = gfile.Exists(FLAGS.yelp_test_set)
+    if is_test_set:
+        print 'Labelmap file already exists.'
+        if overwrite:
+            print 'Overwriting files...'
+            gfile.Remove(FLAGS.yelp_test_set)
+        else:
+            print 'Nothing to do here.'
+            return
+        print
+
+    print 'Building filename list...'
+    filenames = build_filename_list(FLAGS.yelp_test_image_path)
+
+    with open(FLAGS.yelp_test_set, 'w') as test_set:
+        for filename in filenames:
+            photo_id = filename.split('/')[-1]
+            if not photo_id.startswith('._'):
+                test_set.write('%s,%s\n' % (filename, str(1)))
+
+
 def create_label_map_file_yelp(overwrite=False, num_logs=10):
     is_training_set = gfile.Exists(FLAGS.yelp_training_set)
     is_validation_set = gfile.Exists(FLAGS.yelp_validation_set)
@@ -33,7 +55,7 @@ def create_label_map_file_yelp(overwrite=False, num_logs=10):
 
     print 'Building filename list...'
     filenames = build_filename_list(FLAGS.yelp_training_image_path)
-    photo_to_biz_id = _get_photo_biz_id_map()
+    photo_to_biz_id = _get_photo_biz_id_map(FLAGS.yelp_training_photo_biz_id_path)
     biz_id_to_labels_train, biz_id_to_labels_validate = _get_biz_id_labels_maps()
 
     with open(FLAGS.yelp_training_set, 'w') as training_set, open(FLAGS.yelp_validation_set, 'w') as validation_set:
@@ -47,9 +69,9 @@ def create_label_map_file_yelp(overwrite=False, num_logs=10):
                     validation_set.write('%s,%s\n' % (filename, biz_id_to_labels_validate[biz_id]))
 
 
-def _get_photo_biz_id_map():
+def _get_photo_biz_id_map(path):
     photo_to_biz_id = {}
-    with open(FLAGS.yelp_training_photo_biz_id_path) as f:
+    with open(path) as f:
         csvreader = csv.DictReader(f)
         for row in csvreader:
             photo_to_biz_id[row['photo_id']] = row['business_id']

@@ -159,6 +159,10 @@ tf.app.flags.DEFINE_string('yelp_validation_set', os.path.join(FLAGS.data_path, 
                            """Path to the file mapping each filename to its labels.
                            These files are used for validation.""")
 
+tf.app.flags.DEFINE_string('yelp_test_set', os.path.join(FLAGS.data_path, 'yelp/labelmap_test'),
+                           """Path to the file mapping each filename to its labels.
+                           These files are used for testing and actually do not have any labels.""")
+
 tf.app.flags.DEFINE_string('yelp_mean_stddev_path', os.path.join(FLAGS.data_path, 'yelp/mean_stddev'),
                            """Path where to store/load precomputed mean/stddev over Yelp training, validation and
                            test data.""")
