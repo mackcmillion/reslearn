@@ -1,3 +1,5 @@
+import csv
+
 import tensorflow as tf
 
 # image = tf.constant([[1, 2], [3, 4]], dtype=tf.float32)
@@ -301,31 +303,12 @@ import tensorflow as tf
 # print glimpse
 # print glimpse.eval()
 
-global_step, ckpt = has_new_checkpoint(CHECKPOINT_PATH, last_global_step)
-if ckpt:
-    saver.restore(sess, os.path.join(CHECKPOINT_PATH, ckpt))
-else:
-    return global_step
-
-try:
-    num_iter = int(math.ceil((1.0 * MAX_NUM_EXAMPLES) / BATCH_SIZE))
-    true_count = 0
-    total_sample_count = num_iter * BATCH_SIZE
-    step = 0
-    while step < num_iter and not coord.should_stop():
-        predictions = sess.run(eval_op)
-        true_count += numpy.sum(predictions)
-        step += 1
-
-    accuracy = (true_count * 1.0) / total_sample_count
-    test_error = 1 - accuracy
-
-    summary = sess.run(summary_op, feed_dict={test_err: test_error})
-    summary_writer.add_summary(summary, global_step)
-
-except Exception as e:  # pylint: disable=broad-except
-    print e
-    coord.request_stop(e)
-
-# return the current global step to track progress
-return global_step
+# PATH = "/home/max/Studium/Kurse/BA2/data/yelp/test_photo_to_biz.csv"
+# photo_to_biz_id = {}
+#
+# with open(PATH) as f:
+#     csvreader = csv.DictReader(f)
+#     for row in csvreader:
+#         photo_to_biz_id[row['business_id']] = row['photo_id']
+#
+# print len(photo_to_biz_id)
