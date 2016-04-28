@@ -127,15 +127,15 @@ class Yelp(Dataset):
         example_list = [self._read_and_preprocess_image(filename_queue, self._preprocess_for_evaluation) for _ in
                         xrange(FLAGS.num_consuming_threads)]
 
-        image_batch, label_batch = tf.train.shuffle_batch_join(
+        image_batch, label_batch, filename_batch = tf.train.shuffle_batch_join(
                 example_list,
                 batch_size=FLAGS.batch_size,
                 capacity=min_num_examples_in_queue + (FLAGS.num_consuming_threads + 2) * FLAGS.batch_size,
                 min_after_dequeue=min_num_examples_in_queue,
-                shapes=[[224, 224, 3], [self._num_classes]]
+                shapes=[[224, 224, 3], [self._num_classes], []]
         )
 
-        return image_batch, label_batch
+        return image_batch, label_batch, filename_batch
 
     def _load_labelmap(self, filepath):
         if not gfile.Exists(filepath):
@@ -171,7 +171,7 @@ class Yelp(Dataset):
         relative_img = util.absolute_to_relative_colors(feature_img)
         processed_img = fn_preprocess(relative_img)
 
-        return [processed_img, label]
+        return [processed_img, label, filename]
 
     def _preprocess_for_training(self, image):
         image = resize_random(image, 256, 480)

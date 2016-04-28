@@ -5,11 +5,15 @@ import tensorflow as tf
 from datetime import datetime as dt
 
 from config import FLAGS
-from datasets.cifar10 import Cifar10
-from models.resnet6nplus2 import CIFAR10ResNet20, CIFAR10ResNet32, CIFAR10ResNet44, CIFAR10ResNet56
+from datasets.yelp import Yelp
+from models.resnet18 import ResNet18
 
-tf.app.flags.DEFINE_string('checkpoint', '/home/max/Studium/Kurse/BA2/results/checkpoints/resnet_56_optB_2016-04-24_15-18-01/cifar10-resnet-56.ckpt-64000',
+tf.app.flags.DEFINE_string('checkpoint', '/home/max/checkpoints/yelp_resnet_18_2016-04-10_15-04-49/resnet-18.ckpt-901000',
                            """The checkpoint to compute test error from.""")
+
+
+tf.app.flags.DEFINE_string('target_filepath', '/home/max/prediction_map',
+                           """File to write the result to.""")
 
 
 def evaluate(dataset, model):
@@ -18,9 +22,8 @@ def evaluate(dataset, model):
 
     with tf.Graph().as_default():
         # input and evaluation procedure
-        images, true_labels = dataset.evaluation_inputs()
+        images, true_labels, filenames = dataset.evaluation_inputs()
         predictions = model.inference(images, dataset.num_classes, False)
-        top_k_op = _in_top_k(predictions, true_labels)
 
         saver = tf.train.Saver(tf.trainable_variables(), max_to_keep=None)
 
@@ -31,46 +34,42 @@ def evaluate(dataset, model):
             coord = tf.train.Coordinator()
             threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-            _eval_once(sess, coord, saver, tf.app.flags.FLAGS.checkpoint, top_k_op, dataset)
+            _eval_once(sess, coord, saver, tf.app.flags.FLAGS.checkpoint, dataset, predictions, filenames)
 
             coord.request_stop()
             coord.join(threads)
 
 
-def _eval_once(sess, coord, saver, read_checkpoint_path, top_k_op, dataset):
+def _eval_once(sess, coord, saver, read_checkpoint_path, dataset, pred_op, filenames, true_labels):
     saver.restore(sess, read_checkpoint_path)
     print '%s - Restored model from checkpoint %s.' % (dt.now(), read_checkpoint_path)
 
+    results = {}
+
     try:
-        num_iter = int(math.ceil((1.0 * 10000) / FLAGS.batch_size))
-        true_count = 0
-        total_sample_count = num_iter * FLAGS.batch_size
+        num_iter = int(math.ceil((1.0 * dataset.num_evaluation_images) / FLAGS.batch_size))
         step = 0
         while step < num_iter and not coord.should_stop():
-            predictions = sess.run(top_k_op)
-            true_count += numpy.sum(predictions)
+            predictions = sess.run(pred_op)
+            for filename, true_label, prediction in zip(filenames, true_labels, predictions):
+                results[filename] = (true_label, prediction)
             step += 1
-            print '%s - %d of %d images: test error = %.4f' % \
-                  (dt.now(), step * FLAGS.batch_size, 10000, 1 - ((true_count * 1.0) / (step * FLAGS.batch_size)))
-
-        accuracy = (true_count * 1.0) / total_sample_count
-        test_error = 1 - accuracy
-        print '\n%s - final test error over %d images: test error = %.4f%%' % \
-              (dt.now(), total_sample_count, test_error * 100)
+            print '%s - %d of %d images' % \
+                  (dt.now(), step * FLAGS.batch_size, dataset.num_evaluation_images)
 
     except Exception as e:  # pylint: disable=broad-except
         print e
         coord.request_stop(e)
 
-
-def _in_top_k(predictions, true_labels):
-    # softmax is not necessary here
-    # predictions = tf.nn.softmax(predictions, name='eval_softmax')
-    return tf.nn.in_top_k(predictions, true_labels, FLAGS.top_k)
+    with open(tf.app.flags.FLAGS.target_filepath, 'w') as target_file:
+        target_file.write('image,true_labels,predictions')
+        for result in results:
+            true_label, prediction = results[result]
+            target_file.write('%s,%s,%s' % (result, str(true_label), str(prediction)))
 
 
 def main(argv=None):  # pylint: disable=unused-argument
-    evaluate(Cifar10(), CIFAR10ResNet56())
+    evaluate(Yelp(), ResNet18())
 
 
 if __name__ == '__main__':

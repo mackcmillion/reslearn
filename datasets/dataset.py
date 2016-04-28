@@ -53,3 +53,7 @@ class Dataset(object):
     @property
     def num_training_images(self):
         return self._num_training_images
+
+    @property
+    def num_evaluation_images(self):
+        return self._num_validation_images
