@@ -33,7 +33,7 @@ def evaluate(dataset, model):
             coord = tf.train.Coordinator()
             threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-            _eval_once(sess, coord, saver, tf.app.flags.FLAGS.checkpoint, dataset, predictions, filenames)
+            _eval_once(sess, coord, saver, tf.app.flags.FLAGS.checkpoint, dataset, predictions, filenames, true_labels)
 
             coord.request_stop()
             coord.join(threads)
