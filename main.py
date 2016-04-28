@@ -7,6 +7,7 @@ from datetime import datetime as dt
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 
+import scripts.eval_once
 from datasets.cifar10 import Cifar10
 from datasets.imagenet import ImageNet
 from datasets.yelp_small import YelpSmall
@@ -35,6 +36,10 @@ DATASET_DICT = {'cifar10': Cifar10, 'imagenet': ImageNet, 'yelp': Yelp, 'yelp-sm
 
 
 def main(argv=None):  # pylint: disable=unused-argument
+    scripts.eval_once.main()
+
+
+def derp(argv=None):  # pylint: disable=unused-argument
 
     if FLAGS.model not in MODEL_DICT:
         raise ValueError('%s - Unknown model.' % dt.now())
