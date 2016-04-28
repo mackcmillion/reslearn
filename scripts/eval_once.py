@@ -50,7 +50,7 @@ def _eval_once(sess, coord, saver, read_checkpoint_path, dataset, pred_op, filen
         step = 0
         while step < num_iter and not coord.should_stop():
             predictions = sess.run(pred_op)
-            for filename, true_label, prediction in zip(filenames, true_labels, predictions):
+            for filename, true_label, prediction in zip(sess.run(filenames), true_labels, predictions):
                 results[filename] = (true_label, prediction)
             step += 1
             print '%s - %d of %d images' % \
