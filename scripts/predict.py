@@ -21,34 +21,16 @@ def hamming_loss(sess, true_labels, predictions):
     eval_op = Yelp().eval_op(pred, lbls)
     print eval_op.get_shape()
     hloss = tf.reduce_mean(eval_op)
-    result = sess.run(eval_op, feed_dict={pred: predictions, lbls: true_labels})
-    return sum(result) / len(result)
-
-
-def hamming_loss_map(img_lbl_pred_map):
-    sess = tf.Session()
-    hloss_map = {}
-    for image in img_lbl_pred_map:
-        print 'Computing hamming loss for ' + image
-        true_labels, predictions = img_lbl_pred_map[image]
-        hloss = hamming_loss(sess, true_labels, predictions)
-        hloss_map[image] = hloss
-    return hloss_map
+    return sess.run(hloss, feed_dict={pred: predictions, lbls: true_labels})
 
 
 def total_hamming_loss(img_lbl_pred_map):
     true_labels = []
     predictions = []
-    # i = 0
     for image in img_lbl_pred_map:
-        # if i >= 7300:
-        #     break
-        true_labels.append(img_lbl_pred_map[image][0])
-        predictions.append(img_lbl_pred_map[image][1])
-        # i += 1
-
-    # print true_labels[-1]
-    # print predictions[-1]
+        for pred in img_lbl_pred_map[image][1]:
+            true_labels.append(img_lbl_pred_map[image][0])
+            predictions.append(pred)
 
     sess = tf.Session()
     hloss = hamming_loss(sess, true_labels, predictions)
@@ -63,10 +45,11 @@ def accumulate_for_biz(img_lbl_pred_map):
         img_id = image.split('/')[-1].split('.')[0]
         biz_ids = img_biz_id_map[img_id]
         for biz_id in biz_ids:
-            if accum[biz_id] != (0, []):
-                accum[biz_id][1].append(img_lbl_pred_map[image][1])
-            else:
-                accum[biz_id] = (img_lbl_pred_map[image][0], [img_lbl_pred_map[image][1]])
+            for pred in img_lbl_pred_map[image][1]:
+                if accum[biz_id] != (0, []):
+                    accum[biz_id][1].append(pred)
+                else:
+                    accum[biz_id] = (img_lbl_pred_map[image][0], [pred])
 
     new_map = {}
     for biz in accum:
@@ -101,7 +84,7 @@ def _get_all_businesses():
 
 
 def read_prediction_file(path):
-    img_lbl_pred_map = {}
+    img_lbl_pred_map = defaultdict(list)
     with open(path, 'r') as f:
         for line in f:
             split = line.split(',')
@@ -110,7 +93,10 @@ def read_prediction_file(path):
             predictions = ','.join(split[10:])
             true_labels = json.loads(true_labels)
             predictions = json.loads(predictions)
-            img_lbl_pred_map[image] = (true_labels, predictions)
+            if image in img_lbl_pred_map:
+                img_lbl_pred_map[image][1].append(predictions)
+            else:
+                img_lbl_pred_map[image] = (true_labels, [predictions])
 
     return img_lbl_pred_map
 
