@@ -58,6 +58,7 @@ def train(dataset, model, summary_path, checkpoint_path):
     coord = tf.train.Coordinator()
 
     # perform initial ops
+    # FIXME do not init when we restore from checkpoint
     sess.run(init_op)
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 

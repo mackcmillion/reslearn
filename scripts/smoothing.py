@@ -8,7 +8,7 @@ from tensorflow.python.platform import gfile
 
 tf.app.flags.DEFINE_string(
         'csv_path',
-        '/home/max/Studium/Kurse/BA2/results/csv/run_resnet_56_2016-04-22_22-05-52_test,tag_test_error_raw.csv',
+        '/home/max/Studium/Kurse/BA2/results/csv/run_yelp_resnet_18_2016-04-10_15-04-49,tag_training_error_raw.csv',
         """Path to the CSV file to apply moving average to.""")
 
 tf.app.flags.DEFINE_string(
@@ -31,7 +31,7 @@ def apply_moving_average_to_csv():
     sess = tf.Session(config=tf.ConfigProto(log_device_placement=False))
 
     p = tf.placeholder(tf.float32, shape=[])
-    test_err = tf.Variable(1.0, trainable=False)
+    test_err = tf.Variable(0.4, trainable=False)
     test_err_assign = test_err.assign(p)
     avg_op = averaging_op(test_err, test_err_assign)
 
