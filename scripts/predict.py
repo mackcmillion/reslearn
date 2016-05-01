@@ -39,16 +39,16 @@ def hamming_loss_map(img_lbl_pred_map):
 def total_hamming_loss(img_lbl_pred_map):
     true_labels = []
     predictions = []
-    i = 0
+    # i = 0
     for image in img_lbl_pred_map:
-        if i >= 7300:
-            break
+        # if i >= 7300:
+        #     break
         true_labels.append(img_lbl_pred_map[image][0])
         predictions.append(img_lbl_pred_map[image][1])
-        i += 1
+        # i += 1
 
-    print true_labels[-1]
-    print predictions[-1]
+    # print true_labels[-1]
+    # print predictions[-1]
 
     sess = tf.Session()
     hloss = hamming_loss(sess, true_labels, predictions)

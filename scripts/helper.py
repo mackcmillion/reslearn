@@ -1,6 +1,6 @@
 import re
 
-with open('/home/max/Studium/Kurse/BA2/results/prediction_map', 'r') as f:
+with open('/home/max/Studium/Kurse/BA2/results/prediction_map_val', 'r') as f:
     # final = ''
     # line = f.read()
     # line = line.replace('\n', '')
@@ -22,5 +22,5 @@ with open('/home/max/Studium/Kurse/BA2/results/prediction_map', 'r') as f:
         line_replaced4 = line_replaced3.replace('.]', '.0]')
         final += line_replaced4
     # print final
-    with open('/home/max/Studium/Kurse/BA2/results/prediction_map_test2', 'w') as f2:
+    with open('/home/max/Studium/Kurse/BA2/results/prediction_map_val2', 'w') as f2:
         f2.write(final)

@@ -47,28 +47,21 @@ def _eval_once(sess, coord, saver, read_checkpoint_path, dataset, pred_op, filen
     else:
         raise Exception('No checkpoint found.')
 
-    results = {}
-
-    try:
-        num_iter = int(math.ceil((1.0 * dataset.num_evaluation_images) / FLAGS.batch_size))
-        step = 0
-        while step < num_iter and not coord.should_stop():
-            predictions = sess.run(pred_op)
-            for filename, true_label, prediction in zip(sess.run(filenames), sess.run(true_labels), predictions):
-                results[filename] = (true_label, prediction)
-            step += 1
-            print '%s - %d of %d images' % \
-                  (dt.now(), step * FLAGS.batch_size, dataset.num_evaluation_images)
-
-    except Exception as e:  # pylint: disable=broad-except
-        print e
-        coord.request_stop(e)
-
     with open(tf.app.flags.FLAGS.target_filepath, 'w') as target_file:
-        target_file.write('image,true_labels,predictions')
-        for result in results:
-            true_label, prediction = results[result]
-            target_file.write('%s,%s,%s\n' % (result, str(true_label), str(prediction)))
+        try:
+            num_iter = int(math.ceil((1.0 * dataset.num_evaluation_images) / FLAGS.batch_size))
+            step = 0
+            while step < num_iter and not coord.should_stop():
+                predictions = sess.run(pred_op)
+                for filename, true_label, prediction in zip(sess.run(filenames), sess.run(true_labels), predictions):
+                    target_file.write('%s,%s,%s\n' % (filename, str(true_label), str(prediction)))
+                step += 1
+                print '%s - %d of %d images' % \
+                      (dt.now(), step * FLAGS.batch_size, dataset.num_evaluation_images)
+
+        except Exception as e:  # pylint: disable=broad-except
+            print e
+            coord.request_stop(e)
 
 
 def main(argv=None):  # pylint: disable=unused-argument
