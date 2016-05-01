@@ -1,6 +1,6 @@
 import re
 
-with open('/home/max/Studium/Kurse/BA2/results/prediction_map_val', 'r') as f:
+with open('/home/max/Studium/Kurse/BA2/results/prediction_map', 'r') as f:
     # final = ''
     # line = f.read()
     # line = line.replace('\n', '')
@@ -12,7 +12,7 @@ with open('/home/max/Studium/Kurse/BA2/results/prediction_map_val', 'r') as f:
     #         final += inserted + ','
     #     else:
     #         final += word + ','
-    #
+
     final = ''
     for line in f:
         line_comma = re.sub(r'(\ )+', ',', line)
@@ -21,6 +21,6 @@ with open('/home/max/Studium/Kurse/BA2/results/prediction_map_val', 'r') as f:
         line_replaced3 = line_replaced2.replace('.,', '.0,')
         line_replaced4 = line_replaced3.replace('.]', '.0]')
         final += line_replaced4
-    print final
-    with open('/home/max/Studium/Kurse/BA2/results/prediction_map_val2', 'w') as f2:
+    # print final
+    with open('/home/max/Studium/Kurse/BA2/results/prediction_map_test2', 'w') as f2:
         f2.write(final)

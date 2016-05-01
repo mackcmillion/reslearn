@@ -7,7 +7,7 @@ from config import FLAGS
 from datasets.yelp import Yelp
 from models.resnet18 import ResNet18
 
-tf.app.flags.DEFINE_string('checkpoint', '/home/max/checkpoints/yelp_resnet_18_2016-04-10_15-04-49/resnet-18.ckpt-901000',
+tf.app.flags.DEFINE_string('checkpoint', '/home/max/checkpoints/yelp_resnet_18_2016-04-10_15-04-49',
                            """The checkpoint to compute test error from.""")
 
 
@@ -28,7 +28,7 @@ def evaluate(dataset, model):
 
         with tf.Session() as sess:
 
-            sess.run(tf.initialize_all_variables())
+            # sess.run(tf.initialize_all_variables())
 
             coord = tf.train.Coordinator()
             threads = tf.train.start_queue_runners(sess=sess, coord=coord)
@@ -40,8 +40,12 @@ def evaluate(dataset, model):
 
 
 def _eval_once(sess, coord, saver, read_checkpoint_path, dataset, pred_op, filenames, true_labels):
-    saver.restore(sess, read_checkpoint_path)
-    print '%s - Restored model from checkpoint %s.' % (dt.now(), read_checkpoint_path)
+    ckpt = tf.train.get_checkpoint_state(read_checkpoint_path)
+    if ckpt and ckpt.model_checkpoint_path:
+        saver.restore(sess, ckpt.model_checkpoint_path)
+        print '%s - Restored model from checkpoint %s.' % (dt.now(), ckpt.model_checkpoint_path)
+    else:
+        raise Exception('No checkpoint found.')
 
     results = {}
 
