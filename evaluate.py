@@ -1,5 +1,6 @@
 # most of this code is taken from
 # https://tensorflow.googlesource.com/tensorflow/+/master/tensorflow/models/image/cifar10/cifar10_eval.py
+import json
 import math
 import os
 import time
@@ -17,7 +18,7 @@ from util import extract_global_step
 def evaluate(dataset, model, summary_path, read_checkpoint_path):
     with tf.Graph().as_default():
         # input and evaluation procedure
-        images, true_labels = dataset.evaluation_inputs()
+        images, true_labels, filenames = dataset.evaluation_inputs()
         predictions = model.inference(images, dataset.num_classes, False)
         eval_op = dataset.eval_op(predictions, true_labels)
         test_err_op = dataset.test_error
@@ -39,10 +40,10 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
             coord = tf.train.Coordinator()
             threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-            last = None
+            last = 900000
             while True:
-                last = _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, eval_op, test_err_op,
-                                  summary_op, test_err)
+                last = _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, eval_op, predictions,
+                                  true_labels, filenames, test_err_op, summary_op, test_err)
                 if FLAGS.run_once or last == FLAGS.training_steps:
                     break
                 time.sleep(FLAGS.eval_interval_secs)
@@ -51,8 +52,8 @@ def evaluate(dataset, model, summary_path, read_checkpoint_path):
             coord.join(threads)
 
 
-def _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, eval_op, test_err_op, summary_op,
-               test_err):
+def _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, eval_op, predictions, true_labels,
+               filenames, test_err_op, summary_op, test_err):
     # restore training progress
     global_step, ckpt = _has_new_checkpoint(read_checkpoint_path, last)
     if ckpt:
@@ -68,10 +69,13 @@ def _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, e
         accumulated = 0.0
         total_sample_count = num_iter * FLAGS.batch_size
         step = 0
-        while step < num_iter and not coord.should_stop():
-            predictions = sess.run(eval_op)
-            accumulated += numpy.sum(predictions)
-            step += 1
+        with open(FLAGS.target_filepath, 'w') as target_file:
+            while step < num_iter and not coord.should_stop():
+                hloss, preds, labels, fnames = sess.run([eval_op, predictions, true_labels, filenames])
+                accumulated += numpy.sum(hloss)
+                step += 1
+                for filename, true_label, prediction in zip(fnames, labels, preds):
+                    target_file.write('%s,%s,%s\n' % (filename, json.dumps(true_label), json.dumps(prediction)))
 
         test_error, test_error_name = test_err_op(accumulated, total_sample_count)
         print '%s - step %i: %s = %.2f%%' % (dt.now(), global_step, test_error_name, test_error * 100)

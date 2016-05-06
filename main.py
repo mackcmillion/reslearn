@@ -36,10 +36,6 @@ DATASET_DICT = {'cifar10': Cifar10, 'imagenet': ImageNet, 'yelp': Yelp, 'yelp-sm
 
 
 def main(argv=None):  # pylint: disable=unused-argument
-    scripts.eval_once.main()
-
-
-def derp(argv=None):  # pylint: disable=unused-argument
 
     if FLAGS.model not in MODEL_DICT:
         raise ValueError('%s - Unknown model.' % dt.now())
