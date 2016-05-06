@@ -7,6 +7,7 @@ from collections import defaultdict
 
 IMAGE_PREDICTION_PATH = '/home/max/Studium/Kurse/BA2/results/prediction_map_val'
 PHOTO_BIZ_ID_PATH = '/home/max/Studium/Kurse/BA2/data/yelp/train_photo_to_biz_ids.csv'
+VALIDATION_LABELMAP_PATH = '/home/max/Studium/Kurse/BA2/data/yelp/labelmap_val'
 SAMPLE_SUBMISSION_PATH = '/home/max/Studium/Kurse/BA2/data/yelp/sample_submission.csv'
 TARGET_FILE = '/home/max/Studium/Kurse/BA2/results/submission.csv'
 
@@ -38,8 +39,8 @@ def total_hamming_loss(img_lbl_pred_map):
     return hloss
 
 
-def accumulate_for_biz(img_lbl_pred_map):
-    accum = _get_all_businesses()
+def accumulate_for_biz(img_lbl_pred_map, validate):
+    accum = _get_all_businesses(validate=validate)
     img_biz_id_map = _get_photo_biz_id_map()
     for image in img_lbl_pred_map:
         img_id = image.split('/')[-1].split('.')[0]
@@ -51,14 +52,19 @@ def accumulate_for_biz(img_lbl_pred_map):
                 else:
                     accum[biz_id] = (img_lbl_pred_map[image][0], [pred])
 
+    new_accum = {}
+    for biz_id in accum:
+        if accum[biz_id] != (0, []):
+            new_accum[biz_id] = accum[biz_id]
+
     new_map = {}
-    for biz in accum:
-        image_scores = accum[biz][1]
+    for biz in new_accum:
+        image_scores = new_accum[biz][1]
         zipped = zip(*image_scores)
         avg_scores = []
         for single_label_pred in zipped:
             avg_scores.append(sum(single_label_pred) / len(single_label_pred))
-        new_map[biz] = (accum[biz][0], avg_scores)
+        new_map[biz] = (new_accum[biz][0], [avg_scores])
 
     return new_map
 
@@ -73,12 +79,18 @@ def _get_photo_biz_id_map():
     return photo_to_biz_id
 
 
-def _get_all_businesses():
+def _get_all_businesses(validate):
     businesses = {}
-    with open(SAMPLE_SUBMISSION_PATH) as f:
-        csvreader = csv.DictReader(f)
-        for row in csvreader:
-            businesses[row['business_id']] = (0, [])
+    if validate:
+        with open(PHOTO_BIZ_ID_PATH) as f:
+            csvreader = csv.DictReader(f)
+            for row in csvreader:
+                businesses[row['business_id']] = (0, [])
+    else:
+        with open(SAMPLE_SUBMISSION_PATH) as f:
+            csvreader = csv.DictReader(f)
+            for row in csvreader:
+                businesses[row['business_id']] = (0, [])
 
     return businesses
 
@@ -131,6 +143,7 @@ def predict(sess, predictions):
 
 if __name__ == '__main__':
     ilpm = read_prediction_file(IMAGE_PREDICTION_PATH)
-    # acc_ilpm = accumulate_for_biz(ilpm)
+    # acc_ilpm = accumulate_for_biz(ilpm, validate=True)
     # make_prediction(acc_ilpm)
     print total_hamming_loss(ilpm)
+    # print total_hamming_loss(acc_ilpm)

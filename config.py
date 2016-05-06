@@ -54,7 +54,7 @@ tf.app.flags.DEFINE_float('weight_decay', 0.0001,
                           """The constant float L2 weight decay loss is multiplied with.""")
 
 
-tf.app.flags.DEFINE_integer('training_steps', 2000000,
+tf.app.flags.DEFINE_integer('training_steps', 901000,
                             """Number of iterations for training.""")
 
 tf.app.flags.DEFINE_integer('batch_size', 16,
@@ -85,7 +85,7 @@ tf.app.flags.DEFINE_integer('lr_interval', 10000,
 tf.app.flags.DEFINE_integer('eval_interval_secs', 10,
                             """Interval seconds in which to poll the checkpoint directory for new checkpoint files.""")
 
-tf.app.flags.DEFINE_integer('max_num_examples', 7300,
+tf.app.flags.DEFINE_integer('max_num_examples', 73233,
                             """Maximum number of examples to process in one evaluation run.""")
 
 tf.app.flags.DEFINE_boolean('run_once', False,
@@ -174,3 +174,6 @@ tf.app.flags.DEFINE_string('summary_path', '/home/max/Studium/Kurse/BA2/summarie
 tf.app.flags.DEFINE_string('checkpoint_path',
                            '/home/max/Studium/Kurse/BA2/checkpoints',
                            """Path to periodically save checkpoints of the training procedure.""")
+
+tf.app.flags.DEFINE_string('prediction_map_filepath', '/home/max/prediction_map',
+                           """File to write the result to.""")
