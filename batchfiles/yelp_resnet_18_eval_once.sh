@@ -14,5 +14,5 @@ stdbuf -oL python /home/max/reslearn/main.py --experiment_name=${EXPERIMENT_NAME
  --eval --eval_interval_secs=1 \
  --num_consuming_threads=4 --min_frac_examples_in_queue=0.001 \
  --data_path=${DATA_PATH} --summary_path=${SUMMARY_PATH} --checkpoint_path=${CHECKPOINT_PATH} \
- >/home/max/logs/${EXPERIMENT_NAME}_eval.log
+ >/home/max/logs/${EXPERIMENT_NAME}_eval_once.log
 echo "Finished evaluation for $EXPERIMENT_NAME."
