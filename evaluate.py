@@ -75,7 +75,8 @@ def _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, e
                 accumulated += numpy.sum(hloss)
                 step += 1
                 for filename, true_label, prediction in zip(fnames, labels, preds):
-                    target_file.write('%s,%s,%s\n' % (filename, json.dumps(true_label), json.dumps(prediction)))
+                    target_file.write(
+                        '%s,%s,%s\n' % (filename, json.dumps(true_label.tolist()), json.dumps(prediction.tolist())))
 
         test_error, test_error_name = test_err_op(accumulated, total_sample_count)
         print '%s - step %i: %s = %.2f%%' % (dt.now(), global_step, test_error_name, test_error * 100)
