@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-EXPERIMENT_NAME="yelp_resnet_18_eval_once"
+EXPERIMENT_NAME="yelp_resnet_18"
 DATASET="yelp"
 MODEL="resnet-18"
 
