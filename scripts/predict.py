@@ -143,7 +143,7 @@ def predict(sess, predictions):
 
 if __name__ == '__main__':
     ilpm = read_prediction_file(IMAGE_PREDICTION_PATH)
-    # acc_ilpm = accumulate_for_biz(ilpm, validate=True)
+    acc_ilpm = accumulate_for_biz(ilpm, validate=False)
     # make_prediction(acc_ilpm)
-    print total_hamming_loss(ilpm)
-    # print total_hamming_loss(acc_ilpm)
+    # print total_hamming_loss(ilpm)
+    print total_hamming_loss(acc_ilpm)

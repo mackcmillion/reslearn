@@ -85,7 +85,7 @@ tf.app.flags.DEFINE_integer('lr_interval', 10000,
 tf.app.flags.DEFINE_integer('eval_interval_secs', 10,
                             """Interval seconds in which to poll the checkpoint directory for new checkpoint files.""")
 
-tf.app.flags.DEFINE_integer('max_num_examples', 73233,
+tf.app.flags.DEFINE_integer('max_num_examples', 237153,
                             """Maximum number of examples to process in one evaluation run.""")
 
 tf.app.flags.DEFINE_boolean('run_once', False,
