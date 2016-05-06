@@ -171,5 +171,5 @@ tf.app.flags.DEFINE_string('checkpoint_path',
                            '/home/max/Studium/Kurse/BA2/checkpoints',
                            """Path to periodically save checkpoints of the training procedure.""")
 
-tf.app.flags.DEFINE_string('target_filepath', '/home/max/prediction_map',
+tf.app.flags.DEFINE_string('prediction_map_filepath', '/home/max/prediction_map',
                            """File to write the result to.""")

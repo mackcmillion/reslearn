@@ -69,7 +69,7 @@ def _eval_once(sess, coord, last, saver, read_checkpoint_path, summary_writer, e
         accumulated = 0.0
         total_sample_count = num_iter * FLAGS.batch_size
         step = 0
-        with open(FLAGS.target_filepath, 'w') as target_file:
+        with open(FLAGS.prediction_map_filepath, 'w') as target_file:
             while step < num_iter and not coord.should_stop():
                 hloss, preds, labels, fnames = sess.run([eval_op, predictions, true_labels, filenames])
                 accumulated += numpy.sum(hloss)

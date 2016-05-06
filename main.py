@@ -7,14 +7,13 @@ from datetime import datetime as dt
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 
-import scripts.eval_once
+from config import FLAGS
 from datasets.cifar10 import Cifar10
 from datasets.imagenet import ImageNet
+from datasets.yelp import Yelp
 from datasets.yelp_small import YelpSmall
 from evaluate import evaluate
 from models.resnet18 import ResNet18
-from config import FLAGS
-from datasets.yelp import Yelp
 from models.resnet34 import ResNet34
 from models.resnet6nplus2 import CIFAR10ResNet20, CIFAR10ResNet32, CIFAR10ResNet44, CIFAR10ResNet56, CIFAR10ResNet110, \
     CIFAR10ResNet1202
