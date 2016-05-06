@@ -64,7 +64,7 @@ def accumulate_for_biz(img_lbl_pred_map, validate):
         avg_scores = []
         for single_label_pred in zipped:
             avg_scores.append(sum(single_label_pred) / len(single_label_pred))
-        new_map[biz] = (new_accum[biz][0], avg_scores)
+        new_map[biz] = (new_accum[biz][0], [avg_scores])
 
     return new_map
 
@@ -143,6 +143,7 @@ def predict(sess, predictions):
 
 if __name__ == '__main__':
     ilpm = read_prediction_file(IMAGE_PREDICTION_PATH)
-    acc_ilpm = accumulate_for_biz(ilpm, validate=True)
+    # acc_ilpm = accumulate_for_biz(ilpm, validate=True)
     # make_prediction(acc_ilpm)
-    print total_hamming_loss(acc_ilpm)
+    print total_hamming_loss(ilpm)
+    # print total_hamming_loss(acc_ilpm)
