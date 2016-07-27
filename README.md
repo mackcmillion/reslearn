@@ -13,13 +13,13 @@ Due to hardware restrictions I was only able to test the models ResNet-20, ResNe
 [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) dataset. This is what I got, compared to the results from the 
 original paper:
 
-## My results
+### My results
 ![My results on CIFAR-10][my_results]
 
-## Results from the original paper
+### Results from the original paper
 ![Results on CIFAR-10 from the original paper][original_results]
 
-## Comparison
+### Comparison
 | **Model** | **my test error** | **test error in original paper** |
 |:---------:|:-----------------:|:--------------------------------:|
 | ResNet-20 | 8.28%             | 8.75%                            |
