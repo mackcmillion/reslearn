@@ -72,6 +72,7 @@ class Cifar10(Dataset):
                 shapes=[[32, 32, 3], []],
                 name='%s_example_queue' % 'training' if is_training else 'evaluation'
         )
+
         return image_batch, label_batch
 
     def _preprocess_for_training(self, image):
