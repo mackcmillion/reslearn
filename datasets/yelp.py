@@ -87,8 +87,8 @@ class Yelp(Dataset):
 
     def _preprocess_for_training(self, image):
         image = resize_random(image, 256, 480)
-        # swapped cropping and flipping because flip needs image shape to be fully defined - should not make a
-        # difference
+        # swapped cropping and flipping (compared to the paper) because flip needs image shape to be fully
+        # defined - should not make a difference
         image = random_crop_to_square(image, 224)
         image = color_noise(image, *self._color_data[2:])
         image = normalize_colors(image, *self._color_data[:2])
