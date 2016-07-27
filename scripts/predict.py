@@ -5,8 +5,8 @@ import tensorflow as tf
 from datasets.yelp import Yelp
 from collections import defaultdict
 
-IMAGE_PREDICTION_PATH = '/home/max/Studium/Kurse/BA2/results/prediction_map_val'
-PHOTO_BIZ_ID_PATH = '/home/max/Studium/Kurse/BA2/data/yelp/train_photo_to_biz_ids.csv'
+IMAGE_PREDICTION_PATH = '/home/max/Studium/Kurse/BA2/results/prediction_map_test'
+PHOTO_BIZ_ID_PATH = '/home/max/Studium/Kurse/BA2/data/yelp/test_photo_to_biz.csv'
 VALIDATION_LABELMAP_PATH = '/home/max/Studium/Kurse/BA2/data/yelp/labelmap_val'
 SAMPLE_SUBMISSION_PATH = '/home/max/Studium/Kurse/BA2/data/yelp/sample_submission.csv'
 TARGET_FILE = '/home/max/Studium/Kurse/BA2/results/submission.csv'
@@ -119,6 +119,8 @@ def make_prediction(img_lbl_pred_map):
     for image in img_lbl_pred_map:
         print 'Predicting ' + image
         preds = img_lbl_pred_map[image][1]
+        assert len(preds) == 1
+        preds = preds[0]
         preds = predict(sess, preds)
 
         indices = []
@@ -144,6 +146,6 @@ def predict(sess, predictions):
 if __name__ == '__main__':
     ilpm = read_prediction_file(IMAGE_PREDICTION_PATH)
     acc_ilpm = accumulate_for_biz(ilpm, validate=False)
-    # make_prediction(acc_ilpm)
+    make_prediction(acc_ilpm)
     # print total_hamming_loss(ilpm)
-    print total_hamming_loss(acc_ilpm)
+    # print total_hamming_loss(acc_ilpm)
