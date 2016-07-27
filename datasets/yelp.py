@@ -85,32 +85,6 @@ class Yelp(Dataset):
 
         return image_batch, label_batch
 
-    # def _inputs_evaluation(self, setpath):
-    #     fps, labels = self._load_labelmap(setpath)
-    #     filepaths = tf.constant(fps)
-    #     labels = tf.constant(labels, dtype=tf.float32)
-    #
-    #     min_num_examples_in_queue = int(FLAGS.min_frac_examples_in_queue * len(fps))
-    #
-    #     filename_queue = tf.RandomShuffleQueue(len(fps), min_num_examples_in_queue, [tf.string, tf.float32],
-    #                                            shapes=[[], [self._num_classes]])
-    #     enqueue_op = filename_queue.enqueue_many([filepaths, labels])
-    #     qr = tf.train.QueueRunner(filename_queue, [enqueue_op])
-    #     tf.train.add_queue_runner(qr)
-    #
-    #     example_list = [self._read_and_preprocess_image(filename_queue, self._preprocess_for_evaluation) for _ in
-    #                     xrange(FLAGS.num_consuming_threads)]
-    #
-    #     image_batch, label_batch = tf.train.shuffle_batch_join(
-    #             example_list,
-    #             batch_size=FLAGS.batch_size,
-    #             capacity=min_num_examples_in_queue + (FLAGS.num_consuming_threads + 2) * FLAGS.batch_size,
-    #             min_after_dequeue=min_num_examples_in_queue,
-    #             shapes=[[5, 2, 256, 256, 3], [self._num_classes]]
-    #     )
-    #
-    #     return image_batch, label_batch
-
     def _inputs_evaluation(self, setpath):
         fps, labels = self._load_labelmap(setpath)
         filepaths = tf.constant(fps)
@@ -175,8 +149,8 @@ class Yelp(Dataset):
 
     def _preprocess_for_training(self, image):
         image = resize_random(image, 256, 480)
-        # swapped cropping and flipping because flip needs image shape to be fully defined - should not make a
-        # difference
+        # swapped cropping and flipping (compared to the paper) because flip needs image shape to be fully
+        # defined - should not make a difference
         image = random_crop_to_square(image, 224)
         image = color_noise(image, *self._color_data[2:])
         image = normalize_colors(image, *self._color_data[:2])
@@ -189,15 +163,3 @@ class Yelp(Dataset):
         image = normalize_colors(image, *self._color_data[:2])
 
         return image
-
-    # def _preprocess_for_evaluation(self, image):
-    #     resizes = []
-    #     for shorter_edge in [224, 256, 384, 480, 640]:
-    #         resized = resize(image, shorter_edge)
-    #         image = normalize_colors(image, *self._color_data[:2])
-    #         # get the center crop at size 256x256. ten cropping to 224x224 is done by evaluation function
-    #         resized_crop = single_crop(resized, 256)
-    #         resized_crop_flip = tf.image.flip_left_right(resized_crop)
-    #         resizes.append(tf.pack([resized_crop, resized_crop_flip]))
-    #
-    #     return tf.pack(resizes)
